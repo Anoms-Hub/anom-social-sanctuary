@@ -2,7 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
-import { getOrCreateUserProfile, getDecorationPackages, updateUserProfile, getCoinBalance, addCoinTransaction, getCoinTransactionHistory } from "./db";
+import { getOrCreateUserProfile, getDecorationPackages, updateUserProfile, getCoinBalance, addCoinTransaction, getCoinTransactionHistory, addXP, getAchievements, getUserAchievements, unlockAchievement } from "./db";
 import { z } from "zod";
 
 export const appRouter = router({
@@ -60,6 +60,17 @@ export const appRouter = router({
     history: protectedProcedure.query(async ({ ctx }) => {
       return await getCoinTransactionHistory(ctx.user.id);
     }),
+  }),
+
+  achievement: router({
+    getAll: publicProcedure.query(async () => getAchievements()),
+    getUserAchievements: protectedProcedure.query(async ({ ctx }) => getUserAchievements(ctx.user.id)),
+    addXP: protectedProcedure
+      .input(z.object({ amount: z.number().positive() }))
+      .mutation(async ({ ctx, input }) => addXP(ctx.user.id, input.amount)),
+    unlock: protectedProcedure
+      .input(z.object({ achievementId: z.number() }))
+      .mutation(async ({ ctx, input }) => unlockAchievement(ctx.user.id, input.achievementId)),
   }),
 });
 

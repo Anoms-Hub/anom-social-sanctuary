@@ -22,9 +22,9 @@
 ## Phase 4: Anom Coin Economy & Level/Achievement System
 - [x] Design coin earning mechanics (Social Good actions, game completions, milestones)
 - [x] Implement coin balance tracking and transactions
-- [ ] Create XP-based level progression system
-- [ ] Design and implement achievement badges (visual, unlockable)
-- [ ] Build user dashboard showing coins, level, and achievements
+- [x] Create XP-based level progression system
+- [x] Design and implement achievement badges (visual, unlockable)
+- [x] Build user dashboard showing coins, level, and achievements
 - [ ] Create leaderboard (optional but recommended)
 
 ## Phase 5: Private Lounges (Family, Friends, Coworkers)

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, userProfiles, decorationPackages, coinTransactions } from "../drizzle/schema";
+import { InsertUser, users, userProfiles, decorationPackages, coinTransactions, achievements, userAchievements } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -224,6 +224,96 @@ export async function getCoinTransactionHistory(userId: number) {
     return await db.select().from(coinTransactions).where(eq(coinTransactions.userId, userId));
   } catch (error) {
     console.error("[Database] Failed to get coin transaction history:", error);
+    throw error;
+  }
+}
+
+export async function addXP(userId: number, amount: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot add XP: database not available");
+    return undefined;
+  }
+
+  try {
+    const profile = await db.select().from(userProfiles).where(eq(userProfiles.userId, userId)).limit(1);
+    if (profile.length === 0) {
+      throw new Error("User profile not found");
+    }
+
+    const currentXP = profile[0].xp || 0;
+    const currentLevel = profile[0].level || 1;
+    let newXP = currentXP + amount;
+    let newLevel = currentLevel;
+
+    // Level up every 100 XP
+    const xpPerLevel = 100;
+    while (newXP >= xpPerLevel) {
+      newLevel += 1;
+      newXP -= xpPerLevel;
+    }
+
+    await db.update(userProfiles).set({ xp: newXP, level: newLevel }).where(eq(userProfiles.userId, userId));
+
+    return { success: true, newLevel, newXP, leveledUp: newLevel > currentLevel };
+  } catch (error) {
+    console.error("[Database] Failed to add XP:", error);
+    throw error;
+  }
+}
+
+export async function getAchievements() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get achievements: database not available");
+    return [];
+  }
+
+  try {
+    return await db.select().from(achievements);
+  } catch (error) {
+    console.error("[Database] Failed to get achievements:", error);
+    throw error;
+  }
+}
+
+export async function getUserAchievements(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user achievements: database not available");
+    return [];
+  }
+
+  try {
+    return await db.select().from(userAchievements).where(eq(userAchievements.userId, userId));
+  } catch (error) {
+    console.error("[Database] Failed to get user achievements:", error);
+    throw error;
+  }
+}
+
+export async function unlockAchievement(userId: number, achievementId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot unlock achievement: database not available");
+    return undefined;
+  }
+
+  try {
+    // Check if already unlocked
+    const existing = await db.select().from(userAchievements).where(eq(userAchievements.userId, userId) && eq(userAchievements.achievementId, achievementId)).limit(1);
+    if (existing.length > 0) {
+      return { success: false, message: "Achievement already unlocked" };
+    }
+
+    await db.insert(userAchievements).values({
+      userId,
+      achievementId,
+    });
+
+    return { success: true, message: "Achievement unlocked!" };
+  } catch (error) {
+    console.error("[Database] Failed to unlock achievement:", error);
     throw error;
   }
 }
