@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, userProfiles, decorationPackages, coinTransactions, achievements, userAchievements, lounges, loungeMembers, loungeMessages, kidsProgress } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -719,6 +719,169 @@ export async function getUserKidsProgress(userId: number) {
       .where(eq(kidsProgress.userId, userId));
   } catch (error) {
     console.error("[Database] Failed to get kids progress:", error);
+    throw error;
+  }
+}
+
+// ============================================
+// MERCH HELPERS
+// ============================================
+
+export async function createMerchRequest(
+  userId: number,
+  title: string,
+  description: string,
+  referenceImages?: string[]
+) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create merch request: database not available");
+    return undefined;
+  }
+
+  try {
+    const { merchRequests } = await import("../drizzle/schema");
+    const result = await db.insert(merchRequests).values({
+      userId,
+      title,
+      description,
+      referenceImages: referenceImages || [],
+      status: "pending",
+    });
+
+    // Return the created request
+    const requests = await db
+      .select()
+      .from(merchRequests)
+      .where(eq(merchRequests.userId, userId))
+      .orderBy((t) => t.createdAt)
+      .limit(1);
+
+    return requests.length > 0 ? requests[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to create merch request:", error);
+    throw error;
+  }
+}
+
+export async function getUserMerchRequests(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user merch requests: database not available");
+    return [];
+  }
+
+  try {
+    const { merchRequests } = await import("../drizzle/schema");
+    return await db
+      .select()
+      .from(merchRequests)
+      .where(eq(merchRequests.userId, userId))
+      .orderBy((t) => t.createdAt);
+  } catch (error) {
+    console.error("[Database] Failed to get user merch requests:", error);
+    throw error;
+  }
+}
+
+export async function getUserMerchOrders(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user merch orders: database not available");
+    return [];
+  }
+
+  try {
+    const { merchOrders } = await import("../drizzle/schema");
+    return await db
+      .select()
+      .from(merchOrders)
+      .where(eq(merchOrders.userId, userId))
+      .orderBy((t) => t.createdAt);
+  } catch (error) {
+    console.error("[Database] Failed to get user merch orders:", error);
+    throw error;
+  }
+}
+
+export async function getAllMerchRequests(status?: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get all merch requests: database not available");
+    return [];
+  }
+
+  try {
+    const { merchRequests } = await import("../drizzle/schema");
+    
+    if (status) {
+      return await db
+        .select()
+        .from(merchRequests)
+        .where(eq(merchRequests.status, status as any))
+        .orderBy((t) => t.createdAt);
+    }
+
+    return await db
+      .select()
+      .from(merchRequests)
+      .orderBy((t) => t.createdAt);
+  } catch (error) {
+    console.error("[Database] Failed to get all merch requests:", error);
+    throw error;
+  }
+}
+
+export async function updateMerchRequestStatus(
+  requestId: number,
+  status: string,
+  estimatedPrice?: string
+) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update merch request: database not available");
+    return undefined;
+  }
+
+  try {
+    const { merchRequests } = await import("../drizzle/schema");
+    const updates: any = { status, updatedAt: new Date() };
+    if (estimatedPrice) {
+      updates.estimatedPrice = estimatedPrice;
+    }
+
+    await db.update(merchRequests).set(updates).where(eq(merchRequests.id, requestId));
+
+    const result = await db
+      .select()
+      .from(merchRequests)
+      .where(eq(merchRequests.id, requestId))
+      .limit(1);
+
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to update merch request:", error);
+    throw error;
+  }
+}
+
+export async function getAdminAnalytics() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get admin analytics: database not available");
+    return { totalUsers: 0, totalLounges: 0, totalMerchRequests: 0, pendingMerchRequests: 0 };
+  }
+
+  try {
+    // Return mock analytics for now
+    return {
+      totalUsers: 1247,
+      totalLounges: 156,
+      totalMerchRequests: 43,
+      pendingMerchRequests: 7,
+    };
+  } catch (error) {
+    console.error("[Database] Failed to get admin analytics:", error);
     throw error;
   }
 }

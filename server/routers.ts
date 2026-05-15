@@ -1,9 +1,10 @@
-import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { getOrCreateUserProfile, getDecorationPackages, updateUserProfile, getCoinBalance, addCoinTransaction, getCoinTransactionHistory, addXP, getAchievements, getUserAchievements, unlockAchievement, createLounge, getUserLounges, getLounge, getLoungeMembersWithUsers, addLoungeMember, removeLoungeMember, addLoungeMessage, getLoungeMessages, updateLounge, getKidsContent, trackKidsProgress, getUserKidsProgress } from "./db";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+import { COOKIE_NAME } from "../shared/const";
 
 export const appRouter = router({
   system: systemRouter,
@@ -185,6 +186,71 @@ export const appRouter = router({
         if (input.neonTheme) updates.neonTheme = input.neonTheme;
         return await updateLounge(input.loungeId, updates);
       }),
+  }),
+
+  merch: router({
+    createRequest: protectedProcedure
+      .input(
+        z.object({
+          title: z.string().min(1, "Title is required"),
+          description: z.string().min(1, "Description is required"),
+          referenceImages: z.array(z.string()).optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { createMerchRequest } = await import("./db");
+        return await createMerchRequest(ctx.user.id, input.title, input.description, input.referenceImages);
+      }),
+
+    getMyRequests: protectedProcedure.query(async ({ ctx }) => {
+      const { getUserMerchRequests } = await import("./db");
+      return await getUserMerchRequests(ctx.user.id);
+    }),
+
+    getMyOrders: protectedProcedure.query(async ({ ctx }) => {
+      const { getUserMerchOrders } = await import("./db");
+      return await getUserMerchOrders(ctx.user.id);
+    }),
+  }),
+
+  admin: router({
+    getMerchRequests: protectedProcedure
+      .input(z.object({ status: z.enum(["pending", "approved", "in_progress", "completed", "rejected"]).optional() }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+        const { getAllMerchRequests } = await import("./db");
+        return await getAllMerchRequests(input.status);
+      }),
+
+    approveMerchRequest: protectedProcedure
+      .input(z.object({ requestId: z.number(), estimatedPrice: z.string().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+        const { updateMerchRequestStatus } = await import("./db");
+        return await updateMerchRequestStatus(input.requestId, "approved", input.estimatedPrice);
+      }),
+
+    rejectMerchRequest: protectedProcedure
+      .input(z.object({ requestId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+        const { updateMerchRequestStatus } = await import("./db");
+        return await updateMerchRequestStatus(input.requestId, "rejected");
+      }),
+
+    getAnalytics: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+      }
+      const { getAdminAnalytics } = await import("./db");
+      return await getAdminAnalytics();
+    }),
   }),
 });
 

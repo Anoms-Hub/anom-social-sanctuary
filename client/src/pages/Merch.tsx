@@ -8,6 +8,7 @@ import { ShoppingBag, Plus, CheckCircle2, Clock, Package } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 interface MerchOrder {
   id: string;
@@ -29,34 +30,36 @@ export default function Merch() {
     design: "",
   });
 
-  const [orders] = useState<MerchOrder[]>([
-    {
-      id: "1",
-      title: "Neon Pixel T-Shirt",
-      description: "Custom design featuring Pixel in neon colors",
-      image: "👕",
-      status: "shipped",
-      createdAt: "2026-04-15",
-      estimatedDelivery: "2026-05-01",
+  // Fetch user's merch requests and orders
+  const { data: myRequests = [], isLoading: requestsLoading } = trpc.merch.getMyRequests.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  // Map backend requests to display format
+  const displayOrders: MerchOrder[] = (myRequests || []).map((req: any) => ({
+    id: req.id.toString(),
+    title: req.title,
+    description: req.description,
+    image: "🎨",
+    status: (req.status || "pending") as any,
+    createdAt: new Date(req.createdAt).toISOString().split('T')[0],
+  }));
+
+  const { data: myOrders = [], isLoading: ordersLoading } = trpc.merch.getMyOrders.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  // Create merch request mutation
+  const createRequestMutation = trpc.merch.createRequest.useMutation({
+    onSuccess: () => {
+      toast.success("Merch request submitted! Our team will review it shortly. 🎉");
+      setFormData({ title: "", description: "", design: "" });
+      setIsRequestOpen(false);
     },
-    {
-      id: "2",
-      title: "Anom Artsy Hoodie",
-      description: "Cozy hoodie with glowing Anom Artsy logo",
-      image: "🧥",
-      status: "in_production",
-      createdAt: "2026-05-01",
-      estimatedDelivery: "2026-05-20",
+    onError: (error) => {
+      toast.error(`Failed to submit request: ${error.message}`);
     },
-    {
-      id: "3",
-      title: "Custom Sticker Pack",
-      description: "Set of 10 neon-themed stickers",
-      image: "🎨",
-      status: "approved",
-      createdAt: "2026-05-10",
-    },
-  ]);
+  });
 
   const handleRequestMerch = () => {
     if (!formData.title.trim() || !formData.description.trim()) {
@@ -64,9 +67,11 @@ export default function Merch() {
       return;
     }
 
-    toast.success("Merch request submitted! Our team will review it shortly. 🎉");
-    setFormData({ title: "", description: "", design: "" });
-    setIsRequestOpen(false);
+    createRequestMutation.mutate({
+      title: formData.title,
+      description: formData.description,
+      referenceImages: [],
+    });
   };
 
   const getStatusIcon = (status: string) => {
@@ -217,7 +222,12 @@ export default function Merch() {
         {/* Your Orders */}
         <h3 className="text-2xl font-bold text-[#ff00cc] mb-6">Your Orders</h3>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {orders.map((order) => (
+          {requestsLoading ? (
+            <p className="text-[#7a7f8e]">Loading your requests...</p>
+          ) : displayOrders.length === 0 ? (
+            <p className="text-[#7a7f8e]">No merch requests yet. Submit one to get started!</p>
+          ) : null}
+          {displayOrders.map((order) => (
             <Card
               key={order.id}
               className="bg-[#1a1f2e] border border-[#2a2f3e] p-6 hover:border-[#ff00cc] transition-colors"

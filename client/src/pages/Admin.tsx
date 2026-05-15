@@ -6,62 +6,47 @@ import { Users, ShoppingBag, TrendingUp, Settings, AlertCircle } from "lucide-re
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { toast } from "sonner";
-
-interface AdminStats {
-  totalUsers: number;
-  activeUsers: number;
-  totalLounge: number;
-  totalMerchRequests: number;
-  pendingMerchRequests: number;
-  totalCoinsDistributed: string;
-}
+import { trpc } from "@/lib/trpc";
 
 export default function Admin() {
   const { isAuthenticated, loading, user } = useAuth();
   const [, navigate] = useLocation();
 
-  // Check if user is admin (in production, verify on backend)
-  const isAdmin = user?.role === "admin" || user?.email?.includes("admin");
+  // Fetch admin data
+  const { data: merchRequests = [], isLoading: requestsLoading } = trpc.admin.getMerchRequests.useQuery(
+    { status: undefined },
+    { enabled: isAuthenticated && user?.role === "admin" }
+  );
 
-  const [stats] = useState<AdminStats>({
-    totalUsers: 1247,
-    activeUsers: 892,
-    totalLounge: 156,
-    totalMerchRequests: 43,
-    pendingMerchRequests: 7,
-    totalCoinsDistributed: "125,400",
+  const { data: analytics = { totalUsers: 0, totalLounges: 0, totalMerchRequests: 0, pendingMerchRequests: 0 } } = trpc.admin.getAnalytics.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === "admin",
   });
 
-  const [merchRequests] = useState([
-    {
-      id: "1",
-      user: "Sarah M.",
-      title: "Custom Pixel T-Shirt",
-      status: "pending",
-      createdAt: "2026-05-14",
+  // Approve/reject mutations
+  const approveMutation = trpc.admin.approveMerchRequest.useMutation({
+    onSuccess: () => {
+      toast.success("Request approved!");
     },
-    {
-      id: "2",
-      user: "Alex K.",
-      title: "Neon Hoodie",
-      status: "approved",
-      createdAt: "2026-05-13",
+    onError: (error) => {
+      toast.error(`Failed to approve: ${error.message}`);
     },
-    {
-      id: "3",
-      user: "Jordan L.",
-      title: "Sticker Pack",
-      status: "in_production",
-      createdAt: "2026-05-12",
+  });
+
+  const rejectMutation = trpc.admin.rejectMerchRequest.useMutation({
+    onSuccess: () => {
+      toast.success("Request rejected.");
     },
-  ]);
+    onError: (error) => {
+      toast.error(`Failed to reject: ${error.message}`);
+    },
+  });
 
   const handleApproveMerch = (id: string) => {
-    toast.success("Merch request approved!");
+    approveMutation.mutate({ requestId: parseInt(id) });
   };
 
   const handleRejectMerch = (id: string) => {
-    toast.error("Merch request rejected");
+    rejectMutation.mutate({ requestId: parseInt(id) });
   };
 
   if (loading) {
@@ -85,7 +70,7 @@ export default function Admin() {
     );
   }
 
-  if (!isAdmin) {
+  if (user?.role !== "admin") {
     return (
       <div className="min-h-screen bg-[#0b0e14] flex items-center justify-center">
         <div className="text-center">
@@ -130,8 +115,7 @@ export default function Admin() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[#7a7f8e] text-sm">Total Users</p>
-                <p className="text-3xl font-bold text-[#ff00cc]">{stats.totalUsers}</p>
-                <p className="text-xs text-[#7a7f8e] mt-2">{stats.activeUsers} active today</p>
+                <p className="text-3xl font-bold text-[#ff00cc]">{analytics?.totalUsers || 0}</p>
               </div>
               <Users className="w-8 h-8 text-[#ff00cc] opacity-50" />
             </div>
@@ -146,7 +130,7 @@ export default function Admin() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[#7a7f8e] text-sm">Active Lounges</p>
-                <p className="text-3xl font-bold text-[#00eaff]">{stats.totalLounge}</p>
+                <p className="text-3xl font-bold text-[#00eaff]">{analytics?.totalLounges || 0}</p>
                 <p className="text-xs text-[#7a7f8e] mt-2">Community spaces</p>
               </div>
               <TrendingUp className="w-8 h-8 text-[#00eaff] opacity-50" />
@@ -162,8 +146,8 @@ export default function Admin() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[#7a7f8e] text-sm">Merch Requests</p>
-                <p className="text-3xl font-bold text-[#9d4edd]">{stats.totalMerchRequests}</p>
-                <p className="text-xs text-[#7a7f8e] mt-2">{stats.pendingMerchRequests} pending</p>
+                <p className="text-3xl font-bold text-[#9d4edd]">{analytics?.totalMerchRequests || 0}</p>
+                <p className="text-xs text-[#7a7f8e] mt-2">{analytics?.pendingMerchRequests || 0} pending</p>
               </div>
               <ShoppingBag className="w-8 h-8 text-[#9d4edd] opacity-50" />
             </div>
@@ -190,8 +174,13 @@ export default function Admin() {
           {/* Merch Tab */}
           <TabsContent value="merch" className="space-y-6">
             <h3 className="text-xl font-bold text-[#ff00cc]">Pending Merch Requests</h3>
+            {requestsLoading ? (
+              <p className="text-[#7a7f8e]">Loading requests...</p>
+            ) : (merchRequests || []).length === 0 ? (
+              <p className="text-[#7a7f8e]">No merch requests to review.</p>
+            ) : null}
             <div className="space-y-4">
-              {merchRequests.map((request) => (
+              {(merchRequests || []).map((request: any) => (
                 <Card
                   key={request.id}
                   className="bg-[#1a1f2e] border border-[#2a2f3e] p-6"
@@ -202,22 +191,24 @@ export default function Admin() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-lg font-bold text-[#00eaff]">{request.title}</h4>
-                      <p className="text-sm text-[#7a7f8e]">by {request.user}</p>
-                      <p className="text-xs text-[#7a7f8e] mt-2">Requested: {request.createdAt}</p>
+                      <p className="text-sm text-[#7a7f8e]">by {request.userName || "Unknown"}</p>
+                      <p className="text-xs text-[#7a7f8e] mt-2">Requested: {new Date(request.createdAt).toISOString().split('T')[0]}</p>
                     </div>
                     <div className="flex gap-2">
                       {request.status === "pending" && (
                         <>
                           <Button
                             className="btn-neon-cyan text-sm"
-                            onClick={() => handleApproveMerch(request.id)}
+                            onClick={() => handleApproveMerch(request.id.toString())}
+                            disabled={approveMutation.isPending}
                           >
                             Approve
                           </Button>
                           <Button
                             variant="outline"
                             className="text-[#ff00cc] border-[#2a2f3e] text-sm"
-                            onClick={() => handleRejectMerch(request.id)}
+                            onClick={() => handleRejectMerch(request.id.toString())}
+                            disabled={rejectMutation.isPending}
                           >
                             Reject
                           </Button>
@@ -228,9 +219,9 @@ export default function Admin() {
                           ✓ Approved
                         </span>
                       )}
-                      {request.status === "in_production" && (
+                      {request.status === "in_progress" && (
                         <span className="px-3 py-1 bg-[#0b0e14] text-[#9d4edd] text-sm rounded">
-                          ⚙ In Production
+                          ⚙ In Progress
                         </span>
                       )}
                     </div>
@@ -263,8 +254,8 @@ export default function Admin() {
                   boxShadow: "0 0 10px rgba(0, 234, 255, 0.3), 0 0 20px rgba(0, 234, 255, 0.1)",
                 }}
               >
-                <h4 className="text-lg font-bold text-[#00eaff] mb-4">Coins Distributed</h4>
-                <p className="text-3xl font-bold text-[#ff00cc]">{stats.totalCoinsDistributed} AC</p>
+                <h4 className="text-lg font-bold text-[#00eaff] mb-4">Merch Requests</h4>
+                <p className="text-3xl font-bold text-[#ff00cc]">{analytics?.totalMerchRequests || 0}</p>
               </Card>
 
               <Card
@@ -273,8 +264,8 @@ export default function Admin() {
                   boxShadow: "0 0 10px rgba(157, 78, 221, 0.3), 0 0 20px rgba(157, 78, 221, 0.1)",
                 }}
               >
-                <h4 className="text-lg font-bold text-[#00eaff] mb-4">Engagement Rate</h4>
-                <p className="text-3xl font-bold text-[#9d4edd]">71.5%</p>
+                <h4 className="text-lg font-bold text-[#00eaff] mb-4">Pending Requests</h4>
+                <p className="text-3xl font-bold text-[#9d4edd]">{analytics?.pendingMerchRequests || 0}</p>
               </Card>
             </div>
           </TabsContent>
