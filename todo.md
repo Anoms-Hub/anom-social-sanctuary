@@ -62,7 +62,7 @@
 
 ## Phase 9: White-Glove Bespoke Merch Workflow
 - [x] Create custom merch request form (customer submits idea)
-- [ ] Build merch request dashboard for owner (review, approve, create)
+- [x] Build merch request dashboard for owner (review, approve, create)
 - [ ] Implement payment processing for merch orders (Stripe/PayPal)
 - [ ] Create order fulfillment workflow (owner uploads to Printful/Spreadshop backend)
 - [x] Build customer order tracking page
@@ -77,6 +77,16 @@
 - [ ] Create notification inbox for owner (custom requests, new orders, system alerts)
 - [x] Build analytics dashboard (user growth, coin circulation, engagement metrics)
 - [ ] Add moderation tools for community content
+
+## Phase 12: Backend Integration & Testing
+- [x] Implement tRPC procedures for merch requests
+- [x] Implement tRPC procedures for admin operations
+- [x] Add database helpers for merch and admin queries
+- [x] Wire frontend to use real backend procedures
+- [x] Enforce role-based access control on backend
+- [x] Write vitest tests for merch procedures
+- [x] Write vitest tests for admin procedures
+- [x] Write integration tests for full workflows
 
 ## Phase 11: Final Testing, Polish & Deployment
 - [x] Responsive design testing across devices
