@@ -1,6 +1,6 @@
 import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, userProfiles, decorationPackages, coinTransactions, achievements, userAchievements, lounges, loungeMembers, loungeMessages } from "../drizzle/schema";
+import { InsertUser, users, userProfiles, decorationPackages, coinTransactions, achievements, userAchievements, lounges, loungeMembers, loungeMessages, kidsProgress } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -589,3 +589,136 @@ export async function updateLounge(
 }
 
 // TODO: add feature queries here as your schema grows.
+
+// ============================================
+// KIDS CORNER HELPERS
+// ============================================
+
+export async function getKidsContent() {
+  // Return hardcoded Kids Corner content
+  // In production, this would fetch from a content management system
+  return [
+    {
+      id: "pixel-dot-1",
+      type: "video",
+      title: "Pixel & Dot Episode 1: The Adventure Begins",
+      description: "Join Pixel and Dot on their first adventure in the digital universe!",
+      url: "https://example.com/pixel-dot-ep1.mp4",
+      duration: 15,
+      ageRating: 4,
+    },
+    {
+      id: "pixel-dot-2",
+      type: "video",
+      title: "Pixel & Dot Episode 2: Colors of the Universe",
+      description: "Discover the magical colors of the Anom Universe.",
+      url: "https://example.com/pixel-dot-ep2.mp4",
+      duration: 15,
+      ageRating: 4,
+    },
+    {
+      id: "pixel-dot-3",
+      type: "video",
+      title: "Pixel & Dot Episode 3: Making Friends",
+      description: "Learn about friendship and kindness.",
+      url: "https://example.com/pixel-dot-ep3.mp4",
+      duration: 15,
+      ageRating: 4,
+    },
+    {
+      id: "coloring-1",
+      type: "coloring",
+      title: "Pixel's Coloring Page",
+      description: "Color Pixel in the digital landscape.",
+      url: "https://example.com/coloring-pixel.svg",
+      ageRating: 3,
+    },
+    {
+      id: "offgrid-1",
+      type: "game",
+      title: "Off-Grid Adventure: Kids Edition",
+      description: "A fun educational game for kids.",
+      url: "https://example.com/offgrid-kids.html",
+      ageRating: 5,
+    },
+  ];
+}
+
+export async function trackKidsProgress(
+  userId: number,
+  contentType: string,
+  contentId: string
+) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot track kids progress: database not available");
+    return undefined;
+  }
+
+  try {
+    // Check if progress already exists
+    const existing = await db
+      .select()
+      .from(kidsProgress)
+      .where(
+        and(
+          eq(kidsProgress.userId, userId),
+          eq(kidsProgress.contentId, contentId)
+        )
+      )
+      .limit(1);
+
+    if (existing.length > 0) {
+      // Update existing progress
+      await db
+        .update(kidsProgress)
+        .set({ completed: true, completedAt: new Date() })
+        .where(eq(kidsProgress.id, existing[0].id));
+
+      return existing[0];
+    }
+
+    // Create new progress entry
+    await db.insert(kidsProgress).values({
+      userId,
+      contentType,
+      contentId,
+      completed: true,
+      completedAt: new Date(),
+    });
+
+    const result = await db
+      .select()
+      .from(kidsProgress)
+      .where(
+        and(
+          eq(kidsProgress.userId, userId),
+          eq(kidsProgress.contentId, contentId)
+        )
+      )
+      .limit(1);
+
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to track kids progress:", error);
+    throw error;
+  }
+}
+
+export async function getUserKidsProgress(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get kids progress: database not available");
+    return [];
+  }
+
+  try {
+    return await db
+      .select()
+      .from(kidsProgress)
+      .where(eq(kidsProgress.userId, userId));
+  } catch (error) {
+    console.error("[Database] Failed to get kids progress:", error);
+    throw error;
+  }
+}

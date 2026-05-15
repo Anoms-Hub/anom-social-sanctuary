@@ -2,7 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
-import { getOrCreateUserProfile, getDecorationPackages, updateUserProfile, getCoinBalance, addCoinTransaction, getCoinTransactionHistory, addXP, getAchievements, getUserAchievements, unlockAchievement, createLounge, getUserLounges, getLounge, getLoungeMembersWithUsers, addLoungeMember, removeLoungeMember, addLoungeMessage, getLoungeMessages, updateLounge } from "./db";
+import { getOrCreateUserProfile, getDecorationPackages, updateUserProfile, getCoinBalance, addCoinTransaction, getCoinTransactionHistory, addXP, getAchievements, getUserAchievements, unlockAchievement, createLounge, getUserLounges, getLounge, getLoungeMembersWithUsers, addLoungeMember, removeLoungeMember, addLoungeMessage, getLoungeMessages, updateLounge, getKidsContent, trackKidsProgress, getUserKidsProgress } from "./db";
 import { z } from "zod";
 
 export const appRouter = router({
@@ -71,6 +71,27 @@ export const appRouter = router({
     unlock: protectedProcedure
       .input(z.object({ achievementId: z.number() }))
       .mutation(async ({ ctx, input }) => unlockAchievement(ctx.user.id, input.achievementId)),
+  }),
+
+  kidsCorner: router({
+    getContent: publicProcedure.query(async () => {
+      return await getKidsContent();
+    }),
+
+    trackProgress: protectedProcedure
+      .input(
+        z.object({
+          contentType: z.string(),
+          contentId: z.string(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await trackKidsProgress(ctx.user.id, input.contentType, input.contentId);
+      }),
+
+    getMyProgress: protectedProcedure.query(async ({ ctx }) => {
+      return await getUserKidsProgress(ctx.user.id);
+    }),
   }),
 
   lounge: router({

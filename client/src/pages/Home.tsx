@@ -216,6 +216,15 @@ export default function Home() {
               <Button className="w-full btn-neon-cyan" onClick={() => navigate("/lounges")}>
                 Browse Lounges
               </Button>
+              <Button className="w-full btn-neon-purple" onClick={() => navigate("/achievements")}>
+                View Achievements
+              </Button>
+              <Button className="w-full btn-neon-magenta" onClick={() => navigate("/kids-corner")}>
+                Kids Corner
+              </Button>
+              <Button className="w-full btn-neon-cyan" onClick={() => navigate("/feed")}>
+                Social Feed
+              </Button>
               <Button className="w-full btn-neon-outline" onClick={() => navigate("/games")}>
                 Play Games
               </Button>
