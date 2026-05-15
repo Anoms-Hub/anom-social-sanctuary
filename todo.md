@@ -17,7 +17,7 @@
 - [x] Design and implement decoration package system (character badges, mood glows, neon themes)
 - [x] Build package marketplace (purchasable with Anom Coin or real money)
 - [x] Implement profile customization UI (apply packages without coding)
-- [ ] Add profile preview and sharing functionality
+- [x] Add profile preview and sharing functionality
 
 ## Phase 4: Anom Coin Economy & Level/Achievement System
 - [x] Design coin earning mechanics (Social Good actions, game completions, milestones)

@@ -23,6 +23,26 @@ export const appRouter = router({
     getMe: protectedProcedure.query(async ({ ctx }) => {
       return await getOrCreateUserProfile(ctx.user.id);
     }),
+    getPublic: publicProcedure
+      .input(z.object({ userId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const profile = await getOrCreateUserProfile(input.userId);
+        if (!profile) return null;
+        // Get user name from context
+        const userName = ctx.user?.name || "Anonymous";
+        // Return only public fields
+        return {
+          id: profile.id,
+          userId: profile.userId,
+          bio: profile.bio,
+          neonTheme: profile.neonTheme,
+          avatarUrl: profile.avatarUrl,
+          coins: profile.anomCoinBalance || "0",
+          level: profile.level || 1,
+          achievements: 0,
+          name: userName,
+        };
+      }),
     updateTheme: protectedProcedure
       .input(z.object({ theme: z.enum(["magenta", "cyan", "purple"]) }))
       .mutation(async ({ ctx, input }) => {

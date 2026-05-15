@@ -15,8 +15,9 @@ import SocialFeed from "./pages/SocialFeed";
 import Games from "./pages/Games";
 import Merch from "./pages/Merch";
 import Admin from "./pages/Admin";
+import PublicProfile from "./pages/PublicProfile";
 
-function Router() {
+const AppRoutes = () => {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
@@ -31,13 +32,14 @@ function Router() {
       <Route path={"/feed"} component={SocialFeed} />
       <Route path={"/games"} component={Games} />
       <Route path={"/merch"} component={Merch} />
-      <Route path={"/admin"} component={Admin} />
+      <Route path="/admin" component={Admin} />
+      <Route path="/profile/:userId" component={PublicProfile} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
   );
-}
+};
 
 // NOTE: About Theme
 // - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
@@ -53,7 +55,7 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <AppRoutes />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
