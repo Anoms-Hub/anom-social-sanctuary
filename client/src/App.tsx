@@ -13,6 +13,8 @@ import LoungeDetail from "./pages/LoungeDetail";
 import KidsCorner from "./pages/KidsCorner";
 import SocialFeed from "./pages/SocialFeed";
 import Games from "./pages/Games";
+import Merch from "./pages/Merch";
+import Admin from "./pages/Admin";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -28,6 +30,8 @@ function Router() {
       <Route path={"/kids-corner"} component={KidsCorner} />
       <Route path={"/feed"} component={SocialFeed} />
       <Route path={"/games"} component={Games} />
+      <Route path={"/merch"} component={Merch} />
+      <Route path={"/admin"} component={Admin} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

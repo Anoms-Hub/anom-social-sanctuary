@@ -228,6 +228,9 @@ export default function Home() {
               <Button className="w-full btn-neon-outline" onClick={() => navigate("/games")}>
                 Play Games
               </Button>
+              <Button className="w-full btn-neon-magenta" onClick={() => navigate("/merch")}>
+                Custom Merch
+              </Button>
             </div>
           </div>
 

@@ -61,21 +61,21 @@
 - [ ] Implement daily/weekly challenges with bonus rewards
 
 ## Phase 9: White-Glove Bespoke Merch Workflow
-- [ ] Create custom merch request form (customer submits idea)
+- [x] Create custom merch request form (customer submits idea)
 - [ ] Build merch request dashboard for owner (review, approve, create)
 - [ ] Implement payment processing for merch orders (Stripe/PayPal)
 - [ ] Create order fulfillment workflow (owner uploads to Printful/Spreadshop backend)
-- [ ] Build customer order tracking page
+- [x] Build customer order tracking page
 - [ ] Add notification system for order status updates
-- [ ] Implement merch portfolio/gallery (showcase completed pieces)
+- [x] Implement merch portfolio/gallery (showcase completed pieces)
 
 ## Phase 10: Admin Dashboard
-- [ ] Build admin-only access control and role management
-- [ ] Create merch order management interface
+- [x] Build admin-only access control and role management
+- [x] Create merch order management interface
 - [ ] Build lounge purchase approval system
 - [ ] Implement user management (view levels, achievements, coins)
 - [ ] Create notification inbox for owner (custom requests, new orders, system alerts)
-- [ ] Build analytics dashboard (user growth, coin circulation, engagement metrics)
+- [x] Build analytics dashboard (user growth, coin circulation, engagement metrics)
 - [ ] Add moderation tools for community content
 
 ## Phase 11: Final Testing, Polish & Deployment
