@@ -235,3 +235,73 @@ export const kidsProgress = mysqlTable("kids_progress", {
 
 export type KidsProgress = typeof kidsProgress.$inferSelect;
 export type InsertKidsProgress = typeof kidsProgress.$inferInsert;
+
+/**
+ * Collaboration Projects — social good initiatives created by users
+ */
+export const collaborationProjects = mysqlTable("collaboration_projects", {
+  id: int("id").autoincrement().primaryKey(),
+  creatorId: int("creator_id").notNull(),
+  title: varchar("title", { length: 100 }).notNull(),
+  description: text("description"),
+  cause: varchar("cause", { length: 50 }).notNull(), // "environment", "education", "health", "community", "technology"
+  imageUrl: text("image_url"),
+  status: mysqlEnum("status", ["active", "completed", "paused"]).default("active").notNull(),
+  targetMembers: int("target_members").default(1),
+  currentMembers: int("current_members").default(1),
+  coinRewardPerTask: decimal("coin_reward_per_task", { precision: 10, scale: 2 }).default("10"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CollaborationProject = typeof collaborationProjects.$inferSelect;
+export type InsertCollaborationProject = typeof collaborationProjects.$inferInsert;
+
+/**
+ * Collaboration Project Members — tracks members and their contributions
+ */
+export const collaborationMembers = mysqlTable("collaboration_members", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("project_id").notNull(),
+  userId: int("user_id").notNull(),
+  role: mysqlEnum("role", ["creator", "member"]).default("member").notNull(),
+  tasksCompleted: int("tasks_completed").default(0),
+  coinsEarned: decimal("coins_earned", { precision: 10, scale: 2 }).default("0"),
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+});
+
+export type CollaborationMember = typeof collaborationMembers.$inferSelect;
+export type InsertCollaborationMember = typeof collaborationMembers.$inferInsert;
+
+/**
+ * Collaboration Tasks — individual tasks within projects
+ */
+export const collaborationTasks = mysqlTable("collaboration_tasks", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("project_id").notNull(),
+  title: varchar("title", { length: 100 }).notNull(),
+  description: text("description"),
+  assignedTo: int("assigned_to"),
+  status: mysqlEnum("status", ["pending", "in_progress", "completed"]).default("pending").notNull(),
+  dueDate: timestamp("due_date"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type CollaborationTask = typeof collaborationTasks.$inferSelect;
+export type InsertCollaborationTask = typeof collaborationTasks.$inferInsert;
+
+/**
+ * Collaboration Updates — project activity feed
+ */
+export const collaborationUpdates = mysqlTable("collaboration_updates", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("project_id").notNull(),
+  userId: int("user_id").notNull(),
+  updateType: mysqlEnum("update_type", ["task_completed", "member_joined", "milestone_reached", "comment"]).notNull(),
+  content: text("content"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type CollaborationUpdate = typeof collaborationUpdates.$inferSelect;
+export type InsertCollaborationUpdate = typeof collaborationUpdates.$inferInsert;

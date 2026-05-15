@@ -15,6 +15,13 @@
       "when": 1778626951268,
       "tag": "0001_special_tyrannus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1778808353386,
+      "tag": "0002_wakeful_wendell_vaughn",
+      "breakpoints": true
     }
   ]
 }

@@ -1,97 +1,344 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Gamepad2, Trophy, Zap, Star } from "lucide-react";
+import { Gamepad2, Trophy, Zap, Star, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
-interface Game {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  reward: number;
-  played: boolean;
-  highScore?: number;
+// Trivia Game Component
+function TriviaGame({ onClose, onComplete }: { onClose: () => void; onComplete: (score: number) => void }) {
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [score, setScore] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
+
+  const questions = [
+    {
+      q: "What is the capital of France?",
+      options: ["London", "Paris", "Berlin", "Madrid"],
+      correct: 1,
+    },
+    {
+      q: "What is 2 + 2?",
+      options: ["3", "4", "5", "6"],
+      correct: 1,
+    },
+    {
+      q: "What is the largest planet?",
+      options: ["Earth", "Mars", "Jupiter", "Saturn"],
+      correct: 2,
+    },
+    {
+      q: "What color is the sky?",
+      options: ["Green", "Blue", "Red", "Yellow"],
+      correct: 1,
+    },
+    {
+      q: "How many continents are there?",
+      options: ["5", "6", "7", "8"],
+      correct: 2,
+    },
+  ];
+
+  const handleAnswer = (index: number) => {
+    if (index === questions[currentQuestion].correct) {
+      setScore(score + 20);
+    }
+
+    if (currentQuestion + 1 < questions.length) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      setGameOver(true);
+    }
+  };
+
+  if (gameOver) {
+    return (
+      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <Card className="bg-[#1a1f2e] border border-[#ff00cc] p-8 max-w-md text-center">
+          <h2 className="text-2xl font-bold text-[#ff00cc] mb-4">Game Over!</h2>
+          <p className="text-4xl font-bold text-[#00eaff] mb-6">{score} Points</p>
+          <div className="flex gap-4">
+            <Button
+              className="flex-1 btn-neon-cyan"
+              onClick={() => {
+                onComplete(score);
+                onClose();
+              }}
+            >
+              Claim Reward
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setCurrentQuestion(0);
+                setScore(0);
+                setGameOver(false);
+              }}
+            >
+              Play Again
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+      <Card className="bg-[#1a1f2e] border border-[#ff00cc] p-8 max-w-2xl w-full mx-4">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-[#ff00cc]">Trivia Challenge</h2>
+          <Button variant="ghost" onClick={onClose} className="text-[#7a7f8e]">
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+
+        <div className="mb-6">
+          <p className="text-[#7a7f8e] text-sm mb-2">
+            Question {currentQuestion + 1} / {questions.length}
+          </p>
+          <div className="w-full bg-[#0b0e14] rounded-full h-2">
+            <div
+              className="bg-[#ff00cc] h-2 rounded-full transition-all"
+              style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        <h3 className="text-xl font-bold text-[#00eaff] mb-6">{questions[currentQuestion].q}</h3>
+
+        <div className="grid grid-cols-2 gap-4">
+          {questions[currentQuestion].options.map((option, idx) => (
+            <Button
+              key={idx}
+              onClick={() => handleAnswer(idx)}
+              className="btn-neon-cyan h-16 text-base"
+            >
+              {option}
+            </Button>
+          ))}
+        </div>
+
+        <p className="text-center text-[#ff00cc] font-bold mt-6">Score: {score}</p>
+      </Card>
+    </div>
+  );
+}
+
+// Memory Game Component
+function MemoryGame({ onClose, onComplete }: { onClose: () => void; onComplete: (score: number) => void }) {
+  const [cards, setCards] = useState<{ id: number; emoji: string; flipped: boolean; matched: boolean }[]>([
+    { id: 1, emoji: "🌟", flipped: false, matched: false },
+    { id: 2, emoji: "🌟", flipped: false, matched: false },
+    { id: 3, emoji: "🎮", flipped: false, matched: false },
+    { id: 4, emoji: "🎮", flipped: false, matched: false },
+    { id: 5, emoji: "🚀", flipped: false, matched: false },
+    { id: 6, emoji: "🚀", flipped: false, matched: false },
+    { id: 7, emoji: "💎", flipped: false, matched: false },
+    { id: 8, emoji: "💎", flipped: false, matched: false },
+  ]);
+  const [moves, setMoves] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
+
+  const handleCardClick = (index: number) => {
+    if (cards[index].flipped || cards[index].matched) return;
+
+    const newCards = [...cards];
+    newCards[index].flipped = true;
+    setCards(newCards);
+
+    const flipped = newCards.filter((c) => c.flipped && !c.matched);
+    if (flipped.length === 2) {
+      setMoves(moves + 1);
+      if (flipped[0].emoji === flipped[1].emoji) {
+        setTimeout(() => {
+          const updated = [...newCards];
+          updated[newCards.indexOf(flipped[0])].matched = true;
+          updated[newCards.indexOf(flipped[1])].matched = true;
+          setCards(updated);
+
+          if (updated.every((c) => c.matched)) {
+            setGameOver(true);
+          }
+        }, 500);
+      } else {
+        setTimeout(() => {
+          const updated = [...newCards];
+          updated.forEach((c) => {
+            if (!c.matched) c.flipped = false;
+          });
+          setCards(updated);
+        }, 1000);
+      }
+    }
+  };
+
+  if (gameOver) {
+    return (
+      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <Card className="bg-[#1a1f2e] border border-[#ff00cc] p-8 max-w-md text-center">
+          <h2 className="text-2xl font-bold text-[#ff00cc] mb-4">You Won!</h2>
+          <p className="text-4xl font-bold text-[#00eaff] mb-2">{100 - moves * 5} Points</p>
+          <p className="text-[#7a7f8e] mb-6">Completed in {moves} moves</p>
+          <Button
+            className="w-full btn-neon-cyan"
+            onClick={() => {
+              onComplete(100 - moves * 5);
+              onClose();
+            }}
+          >
+            Claim Reward
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+      <Card className="bg-[#1a1f2e] border border-[#ff00cc] p-8 max-w-md">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-[#ff00cc]">Memory Game</h2>
+          <Button variant="ghost" onClick={onClose} className="text-[#7a7f8e]">
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-4 gap-2 mb-6">
+          {cards.map((card, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleCardClick(idx)}
+              className="w-16 h-16 bg-gradient-to-br from-[#ff00cc] to-[#9d4edd] rounded-lg flex items-center justify-center text-2xl hover:scale-110 transition-transform"
+            >
+              {card.flipped || card.matched ? card.emoji : "?"}
+            </button>
+          ))}
+        </div>
+
+        <p className="text-center text-[#00eaff] font-bold">Moves: {moves}</p>
+      </Card>
+    </div>
+  );
+}
+
+// Mood Matcher Game Component
+function MoodMatcherGame({ onClose, onComplete }: { onClose: () => void; onComplete: (score: number) => void }) {
+  const [score, setScore] = useState(0);
+  const [round, setRound] = useState(0);
+
+  const moods = [
+    { emoji: "😊", name: "Happy" },
+    { emoji: "😢", name: "Sad" },
+    { emoji: "😡", name: "Angry" },
+    { emoji: "😴", name: "Sleepy" },
+  ];
+
+  const rounds = [
+    { question: "When you win a game, you feel...", correct: "Happy" },
+    { question: "When you lose your favorite toy, you feel...", correct: "Sad" },
+    { question: "When someone takes your snack, you feel...", correct: "Angry" },
+    { question: "After playing all day, you feel...", correct: "Sleepy" },
+  ];
+
+  const handleMoodClick = (mood: string) => {
+    if (mood === rounds[round].correct) {
+      setScore(score + 25);
+    }
+
+    if (round + 1 < rounds.length) {
+      setRound(round + 1);
+    } else {
+      setTimeout(() => {
+        onComplete(score + (mood === rounds[round].correct ? 25 : 0));
+        onClose();
+      }, 500);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+      <Card className="bg-[#1a1f2e] border border-[#ff00cc] p-8 max-w-md">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-[#ff00cc]">Mood Matcher</h2>
+          <Button variant="ghost" onClick={onClose} className="text-[#7a7f8e]">
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+
+        <p className="text-[#00eaff] text-lg mb-6 text-center font-bold">{rounds[round].question}</p>
+
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          {moods.map((mood) => (
+            <button
+              key={mood.name}
+              onClick={() => handleMoodClick(mood.name)}
+              className="p-4 bg-[#0b0e14] border border-[#2a2f3e] rounded-lg hover:border-[#ff00cc] transition-colors"
+            >
+              <div className="text-4xl mb-2">{mood.emoji}</div>
+              <div className="text-sm text-[#7a7f8e]">{mood.name}</div>
+            </button>
+          ))}
+        </div>
+
+        <p className="text-center text-[#ff00cc] font-bold">Score: {score}</p>
+      </Card>
+    </div>
+  );
 }
 
 export default function Games() {
   const { isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
-  const [games, setGames] = useState<Game[]>([
+  const [activeGame, setActiveGame] = useState<string | null>(null);
+  const [gameScores, setGameScores] = useState<Record<string, number>>({});
+
+  // TODO: Add games.saveScore mutation to backend
+  // const saveGameScore = trpc.games.saveScore.useMutation({
+  //   onSuccess: () => {
+  //     toast.success("Score saved! 🎉");
+  //   },
+  // });
+
+  const games = [
     {
-      id: "pixel-dash",
-      title: "Pixel Dash",
-      description: "Guide Pixel through the neon maze. Collect coins and avoid obstacles!",
-      icon: "🤖",
+      id: "trivia",
+      title: "Trivia Challenge",
+      description: "Answer questions and test your knowledge!",
+      icon: "🧠",
       difficulty: "Easy",
       reward: 50,
-      played: false,
+      component: TriviaGame,
     },
     {
-      id: "dot-puzzle",
-      title: "Dot's Puzzle Challenge",
-      description: "Solve increasingly complex puzzles with Dot. Test your logic skills!",
-      icon: "✨",
-      difficulty: "Medium",
-      reward: 100,
-      played: false,
-    },
-    {
-      id: "neon-flyer",
-      title: "Neon Flyer",
-      description: "Fly through the neon universe and collect power-ups. How far can you go?",
-      icon: "🚀",
+      id: "memory",
+      title: "Memory Game",
+      description: "Match pairs of cards and test your memory!",
+      icon: "🎮",
       difficulty: "Medium",
       reward: 75,
-      played: true,
-      highScore: 2450,
+      component: MemoryGame,
     },
     {
-      id: "cosmic-match",
-      title: "Cosmic Match",
-      description: "Match cosmic symbols in this fast-paced memory game. Beat the clock!",
-      icon: "🌌",
+      id: "mood-matcher",
+      title: "Mood Matcher",
+      description: "Match emotions to situations!",
+      icon: "😊",
       difficulty: "Easy",
       reward: 40,
-      played: false,
+      component: MoodMatcherGame,
     },
-    {
-      id: "anom-adventure",
-      title: "Anom Adventure",
-      description: "Epic quest through the Anom Universe. Defeat enemies and find treasures!",
-      icon: "⚔️",
-      difficulty: "Hard",
-      reward: 200,
-      played: true,
-      highScore: 5680,
-    },
-    {
-      id: "rhythm-master",
-      title: "Rhythm Master",
-      description: "Follow the beat and tap in time. Show off your rhythm skills!",
-      icon: "🎵",
-      difficulty: "Medium",
-      reward: 85,
-      played: false,
-    },
-  ]);
+  ];
 
-  const handlePlayGame = (gameId: string) => {
-    setGames(
-      games.map((game) =>
-        game.id === gameId
-          ? { ...game, played: true, highScore: Math.floor(Math.random() * 5000) + 1000 }
-          : game
-      )
-    );
-    toast.success(`Playing ${games.find((g) => g.id === gameId)?.title}! 🎮`);
+  const handleGameComplete = (gameId: string, score: number) => {
+    setGameScores({ ...gameScores, [gameId]: score });
+    setActiveGame(null);
+    // TODO: Uncomment when backend mutation is ready
+    // saveGameScore.mutate({ gameId, score });
   };
-
-  const totalRewards = games.reduce((sum, game) => sum + (game.played ? game.reward : 0), 0);
-  const gamesPlayed = games.filter((g) => g.played).length;
 
   if (loading) {
     return (
@@ -113,6 +360,8 @@ export default function Games() {
       </div>
     );
   }
+
+  const totalRewards = Object.values(gameScores).reduce((a, b) => a + b, 0);
 
   return (
     <div className="min-h-screen bg-[#0b0e14] text-[#00eaff]">
@@ -141,7 +390,7 @@ export default function Games() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[#7a7f8e] text-sm">Games Played</p>
-                <p className="text-3xl font-bold text-[#ff00cc]">{gamesPlayed}</p>
+                <p className="text-3xl font-bold text-[#ff00cc]">{Object.keys(gameScores).length}</p>
               </div>
               <Gamepad2 className="w-8 h-8 text-[#ff00cc] opacity-50" />
             </div>
@@ -155,8 +404,8 @@ export default function Games() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[#7a7f8e] text-sm">Coins Earned</p>
-                <p className="text-3xl font-bold text-[#00eaff]">{totalRewards} AC</p>
+                <p className="text-[#7a7f8e] text-sm">Total Points</p>
+                <p className="text-3xl font-bold text-[#00eaff]">{totalRewards}</p>
               </div>
               <Zap className="w-8 h-8 text-[#00eaff] opacity-50" />
             </div>
@@ -180,67 +429,57 @@ export default function Games() {
 
         {/* Games Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {games.map((game) => (
-            <Card
-              key={game.id}
-              className="bg-[#1a1f2e] border border-[#2a2f3e] p-6 hover:border-[#ff00cc] transition-colors"
-              style={{
-                boxShadow: "0 0 10px rgba(255, 0, 204, 0.3), 0 0 20px rgba(255, 0, 204, 0.1)",
-              }}
-            >
-              {/* Game Icon */}
-              <div className="text-5xl mb-4 text-center">{game.icon}</div>
+          {games.map((game) => {
+            const GameComponent = game.component;
+            return (
+              <Card
+                key={game.id}
+                className="bg-[#1a1f2e] border border-[#2a2f3e] p-6 hover:border-[#ff00cc] transition-colors"
+                style={{
+                  boxShadow: "0 0 10px rgba(255, 0, 204, 0.3), 0 0 20px rgba(255, 0, 204, 0.1)",
+                }}
+              >
+                <div className="text-5xl mb-4 text-center">{game.icon}</div>
+                <h3 className="text-lg font-bold text-[#00eaff] mb-2">{game.title}</h3>
+                <p className="text-sm text-[#7a7f8e] mb-4">{game.description}</p>
 
-              {/* Game Title & Description */}
-              <h3 className="text-lg font-bold text-[#00eaff] mb-2">{game.title}</h3>
-              <p className="text-sm text-[#7a7f8e] mb-4">{game.description}</p>
-
-              {/* Game Stats */}
-              <div className="flex items-center justify-between mb-4 pb-4 border-b border-[#2a2f3e]">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between mb-4 pb-4 border-b border-[#2a2f3e]">
                   <span className="text-xs px-2 py-1 bg-[#0b0e14] rounded text-[#7a7f8e]">
                     {game.difficulty}
                   </span>
                   <span className="text-xs px-2 py-1 bg-[#0b0e14] rounded text-[#ff00cc] flex items-center gap-1">
                     <Zap className="w-3 h-3" />
-                    {game.reward} AC
+                    {gameScores[game.id] || game.reward} pts
                   </span>
                 </div>
-              </div>
 
-              {/* High Score or Play Button */}
-              {game.played && game.highScore ? (
-                <div className="mb-4">
-                  <p className="text-xs text-[#7a7f8e] mb-1">High Score</p>
-                  <p className="text-2xl font-bold text-[#00eaff] flex items-center gap-2">
-                    <Star className="w-5 h-5 text-[#ff00cc]" />
-                    {game.highScore}
-                  </p>
-                </div>
-              ) : null}
+                {gameScores[game.id] && (
+                  <div className="mb-4">
+                    <p className="text-xs text-[#7a7f8e] mb-1">Best Score</p>
+                    <p className="text-2xl font-bold text-[#00eaff] flex items-center gap-2">
+                      <Star className="w-5 h-5 text-[#ff00cc]" />
+                      {gameScores[game.id]}
+                    </p>
+                  </div>
+                )}
 
-              {/* Play Button */}
-              <Button
-                className="w-full btn-neon-magenta gap-2"
-                onClick={() => handlePlayGame(game.id)}
-              >
-                <Gamepad2 className="w-4 h-4" />
-                {game.played ? "Play Again" : "Play Now"}
-              </Button>
-            </Card>
-          ))}
-        </div>
+                <Button
+                  className="w-full btn-neon-magenta gap-2"
+                  onClick={() => setActiveGame(game.id)}
+                >
+                  <Gamepad2 className="w-4 h-4" />
+                  Play Now
+                </Button>
 
-        {/* Coming Soon Section */}
-        <div className="mt-12 bg-[#1a1f2e] border border-[#2a2f3e] rounded-lg p-8 text-center">
-          <h3 className="text-xl font-bold text-[#ff00cc] mb-4">More Games Coming Soon!</h3>
-          <p className="text-[#7a7f8e] mb-6">
-            We're constantly adding new games to the Anom Arcade. Check back soon for more fun and rewards!
-          </p>
-          <Button className="btn-neon-cyan gap-2">
-            <Zap className="w-4 h-4" />
-            Notify Me
-          </Button>
+                {activeGame === game.id && (
+                  <GameComponent
+                    onClose={() => setActiveGame(null)}
+                    onComplete={(score) => handleGameComplete(game.id, score)}
+                  />
+                )}
+              </Card>
+            );
+          })}
         </div>
       </main>
     </div>

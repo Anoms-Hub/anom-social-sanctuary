@@ -120,3 +120,15 @@
 - [ ] Plan Phase 2 features (social groups, events, advanced customization)
 - [ ] Build community moderation guidelines
 - [ ] Plan marketing and user acquisition strategy
+
+## Phase 13: Collaboration Station for Social Good
+- [ ] Design collaboration project data model (title, description, cause, members, tasks)
+- [ ] Create collaboration project creation flow with cause categories
+- [ ] Build project dashboard with member list and contribution tracking
+- [ ] Implement task creation and assignment within projects
+- [ ] Add progress tracking and milestone completion
+- [ ] Build collaboration feed showing project updates
+- [ ] Implement Anom Coin rewards for project contributions
+- [ ] Create project discovery and browsing page
+- [ ] Add project sharing and invitation system
+- [ ] Build project completion and impact reporting
