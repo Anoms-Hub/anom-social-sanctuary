@@ -28,12 +28,12 @@
 - [ ] Create leaderboard (optional but recommended)
 
 ## Phase 5: Private Lounges (Family, Friends, Coworkers)
-- [ ] Design lounge data model and access control
-- [ ] Create lounge creation and purchase flow (Anom Coin or real money)
-- [ ] Build lounge chat interface with real-time messaging
+- [x] Design lounge data model and access control
+- [x] Create lounge creation and purchase flow (Anom Coin or real money)
+- [x] Build lounge chat interface with real-time messaging
 - [ ] Implement shared goals and milestone tracking within lounges
-- [ ] Add customizable neon themes for each lounge type
-- [ ] Build lounge member management and invitations
+- [x] Add customizable neon themes for each lounge type
+- [x] Build lounge member management and invitations
 
 ## Phase 6: Kids Corner with Pixel & Dot & Off-Grid Adventure
 - [ ] Integrate Pixel & Dot episode videos (Episodes 1-6)

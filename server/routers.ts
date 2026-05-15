@@ -2,7 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
-import { getOrCreateUserProfile, getDecorationPackages, updateUserProfile, getCoinBalance, addCoinTransaction, getCoinTransactionHistory, addXP, getAchievements, getUserAchievements, unlockAchievement } from "./db";
+import { getOrCreateUserProfile, getDecorationPackages, updateUserProfile, getCoinBalance, addCoinTransaction, getCoinTransactionHistory, addXP, getAchievements, getUserAchievements, unlockAchievement, createLounge, getUserLounges, getLounge, getLoungeMembersWithUsers, addLoungeMember, removeLoungeMember, addLoungeMessage, getLoungeMessages, updateLounge } from "./db";
 import { z } from "zod";
 
 export const appRouter = router({
@@ -71,6 +71,99 @@ export const appRouter = router({
     unlock: protectedProcedure
       .input(z.object({ achievementId: z.number() }))
       .mutation(async ({ ctx, input }) => unlockAchievement(ctx.user.id, input.achievementId)),
+  }),
+
+  lounge: router({
+    create: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().min(1, "Lounge name is required"),
+          type: z.enum(["family", "friends", "coworkers"]),
+          description: z.string().optional(),
+          costAnom: z.string().optional(),
+          costReal: z.string().optional(),
+          neonTheme: z.enum(["magenta", "cyan", "purple"]).optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await createLounge(
+          ctx.user.id,
+          input.name,
+          input.type,
+          input.description,
+          input.costAnom,
+          input.costReal,
+          input.neonTheme
+        );
+      }),
+
+    getMyLounges: protectedProcedure.query(async ({ ctx }) => {
+      return await getUserLounges(ctx.user.id);
+    }),
+
+    getById: protectedProcedure
+      .input(z.object({ loungeId: z.number() }))
+      .query(async ({ input }) => {
+        return await getLounge(input.loungeId);
+      }),
+
+    getMembers: protectedProcedure
+      .input(z.object({ loungeId: z.number() }))
+      .query(async ({ input }) => {
+        return await getLoungeMembersWithUsers(input.loungeId);
+      }),
+
+    addMember: protectedProcedure
+      .input(
+        z.object({
+          loungeId: z.number(),
+          userId: z.number(),
+          role: z.enum(["owner", "admin", "member"]).optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        return await addLoungeMember(input.loungeId, input.userId, input.role);
+      }),
+
+    removeMember: protectedProcedure
+      .input(z.object({ loungeId: z.number(), userId: z.number() }))
+      .mutation(async ({ input }) => {
+        return await removeLoungeMember(input.loungeId, input.userId);
+      }),
+
+    sendMessage: protectedProcedure
+      .input(
+        z.object({
+          loungeId: z.number(),
+          content: z.string().min(1, "Message cannot be empty"),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        return await addLoungeMessage(input.loungeId, ctx.user.id, input.content);
+      }),
+
+    getMessages: protectedProcedure
+      .input(z.object({ loungeId: z.number(), limit: z.number().optional() }))
+      .query(async ({ input }) => {
+        return await getLoungeMessages(input.loungeId, input.limit);
+      }),
+
+    updateSettings: protectedProcedure
+      .input(
+        z.object({
+          loungeId: z.number(),
+          name: z.string().optional(),
+          description: z.string().optional(),
+          neonTheme: z.enum(["magenta", "cyan", "purple"]).optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const updates: Record<string, any> = {};
+        if (input.name) updates.name = input.name;
+        if (input.description) updates.description = input.description;
+        if (input.neonTheme) updates.neonTheme = input.neonTheme;
+        return await updateLounge(input.loungeId, updates);
+      }),
   }),
 });
 

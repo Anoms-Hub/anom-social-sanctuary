@@ -8,6 +8,8 @@ import Home from "./pages/Home";
 import Profile from "./pages/Profile";
 import Wallet from "./pages/Wallet";
 import Achievements from "./pages/Achievements";
+import Lounges from "./pages/Lounges";
+import LoungeDetail from "./pages/LoungeDetail";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -18,6 +20,8 @@ function Router() {
       <Route path={"/profile"} component={Profile} />
       <Route path={"/wallet"} component={Wallet} />
       <Route path={"/achievements"} component={Achievements} />
+      <Route path={"/lounges"} component={Lounges} />
+      <Route path={"/lounges/:loungeId"} component={LoungeDetail} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

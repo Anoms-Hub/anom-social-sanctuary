@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, userProfiles, decorationPackages, coinTransactions, achievements, userAchievements } from "../drizzle/schema";
+import { InsertUser, users, userProfiles, decorationPackages, coinTransactions, achievements, userAchievements, lounges, loungeMembers, loungeMessages } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -314,6 +314,276 @@ export async function unlockAchievement(userId: number, achievementId: number) {
     return { success: true, message: "Achievement unlocked!" };
   } catch (error) {
     console.error("[Database] Failed to unlock achievement:", error);
+    throw error;
+  }
+}
+
+// TODO: add feature queries here as your schema grows.
+
+// ============================================
+// LOUNGE HELPERS
+// ============================================
+
+export async function createLounge(
+  ownerId: number,
+  name: string,
+  type: "family" | "friends" | "coworkers",
+  description?: string,
+  costAnom?: string,
+  costReal?: string,
+  neonTheme?: string
+) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create lounge: database not available");
+    return undefined;
+  }
+
+  try {
+    const result = await db.insert(lounges).values({
+      ownerId,
+      name,
+      type,
+      description,
+      costAnom: costAnom || "0",
+      costReal: costReal || "0",
+      neonTheme: neonTheme || "magenta",
+      isPublic: false,
+    });
+
+    // Get the created lounge
+    const createdLounge = await db
+      .select()
+      .from(lounges)
+      .where(eq(lounges.ownerId, ownerId))
+      .orderBy((t) => t.createdAt)
+      .limit(1);
+
+    if (createdLounge.length > 0) {
+      // Add owner as member
+      await db.insert(loungeMembers).values({
+        loungeId: createdLounge[0].id,
+        userId: ownerId,
+        role: "owner",
+      });
+
+      return createdLounge[0];
+    }
+
+    return undefined;
+  } catch (error) {
+    console.error("[Database] Failed to create lounge:", error);
+    throw error;
+  }
+}
+
+export async function getUserLounges(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user lounges: database not available");
+    return [];
+  }
+
+  try {
+    // Get lounges where user is a member
+    const memberLounges = await db
+      .select()
+      .from(lounges)
+      .innerJoin(loungeMembers, eq(lounges.id, loungeMembers.loungeId))
+      .where(eq(loungeMembers.userId, userId));
+
+    return memberLounges.map((row) => row.lounges);
+  } catch (error) {
+    console.error("[Database] Failed to get user lounges:", error);
+    throw error;
+  }
+}
+
+export async function getLounge(loungeId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get lounge: database not available");
+    return undefined;
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(lounges)
+      .where(eq(lounges.id, loungeId))
+      .limit(1);
+
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to get lounge:", error);
+    throw error;
+  }
+}
+
+export async function getLoungeMembersWithUsers(loungeId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get lounge members: database not available");
+    return [];
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(loungeMembers)
+      .innerJoin(users, eq(loungeMembers.userId, users.id))
+      .where(eq(loungeMembers.loungeId, loungeId));
+
+    return result.map((row) => ({
+      member: row.lounge_members,
+      user: row.users,
+    }));
+  } catch (error) {
+    console.error("[Database] Failed to get lounge members:", error);
+    throw error;
+  }
+}
+
+export async function addLoungeMember(
+  loungeId: number,
+  userId: number,
+  role: "owner" | "admin" | "member" = "member"
+) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot add lounge member: database not available");
+    return undefined;
+  }
+
+  try {
+    // Check if already a member
+    const existing = await db
+      .select()
+      .from(loungeMembers)
+      .where(
+        and(
+          eq(loungeMembers.loungeId, loungeId),
+          eq(loungeMembers.userId, userId)
+        )
+      )
+      .limit(1);
+
+    if (existing.length > 0) {
+      return { success: false, message: "User is already a member" };
+    }
+
+    await db.insert(loungeMembers).values({
+      loungeId,
+      userId,
+      role,
+    });
+
+    return { success: true, message: "Member added" };
+  } catch (error) {
+    console.error("[Database] Failed to add lounge member:", error);
+    throw error;
+  }
+}
+
+export async function removeLoungeMember(loungeId: number, userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot remove lounge member: database not available");
+    return undefined;
+  }
+
+  try {
+    await db
+      .delete(loungeMembers)
+      .where(
+        and(
+          eq(loungeMembers.loungeId, loungeId),
+          eq(loungeMembers.userId, userId)
+        )
+      );
+
+    return { success: true, message: "Member removed" };
+  } catch (error) {
+    console.error("[Database] Failed to remove lounge member:", error);
+    throw error;
+  }
+}
+
+export async function addLoungeMessage(
+  loungeId: number,
+  userId: number,
+  content: string
+) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot add lounge message: database not available");
+    return undefined;
+  }
+
+  try {
+    const result = await db.insert(loungeMessages).values({
+      loungeId,
+      userId,
+      content,
+    });
+
+    // Return the created message
+    const messages = await db
+      .select()
+      .from(loungeMessages)
+      .where(eq(loungeMessages.loungeId, loungeId))
+      .orderBy((t) => t.createdAt)
+      .limit(1);
+
+    return messages.length > 0 ? messages[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to add lounge message:", error);
+    throw error;
+  }
+}
+
+export async function getLoungeMessages(loungeId: number, limit: number = 50) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get lounge messages: database not available");
+    return [];
+  }
+
+  try {
+    return await db
+      .select()
+      .from(loungeMessages)
+      .where(eq(loungeMessages.loungeId, loungeId))
+      .orderBy((t) => t.createdAt)
+      .limit(limit);
+  } catch (error) {
+    console.error("[Database] Failed to get lounge messages:", error);
+    throw error;
+  }
+}
+
+export async function updateLounge(
+  loungeId: number,
+  updates: Partial<typeof lounges.$inferInsert>
+) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update lounge: database not available");
+    return undefined;
+  }
+
+  try {
+    await db.update(lounges).set(updates).where(eq(lounges.id, loungeId));
+
+    const result = await db
+      .select()
+      .from(lounges)
+      .where(eq(lounges.id, loungeId))
+      .limit(1);
+
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to update lounge:", error);
     throw error;
   }
 }
