@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { trpc } from "@/lib/trpc";
 import { User, Zap, Award, Palette, Settings, LogOut, Edit2, Save } from "lucide-react";
 import { useState } from "react";
+import React from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 
@@ -16,12 +17,12 @@ const THEME_OPTIONS = [
 ];
 
 const NAME_COLORS = [
-  { id: "white", name: "White", color: "#ffffff" },
-  { id: "magenta", name: "Magenta", color: "#ff00cc" },
-  { id: "cyan", name: "Cyan", color: "#00eaff" },
-  { id: "purple", name: "Purple", color: "#b000ff" },
-  { id: "gold", name: "Gold (VIP)", color: "#ffd700" },
-  { id: "silver", name: "Silver (VIP Max)", color: "#c0c0c0" },
+  { id: "#ffffff", name: "White", color: "#ffffff" },
+  { id: "#ff00cc", name: "Magenta", color: "#ff00cc" },
+  { id: "#00eaff", name: "Cyan", color: "#00eaff" },
+  { id: "#b000ff", name: "Purple", color: "#b000ff" },
+  { id: "#ffd700", name: "Gold (VIP)", color: "#ffd700" },
+  { id: "#c0c0c0", name: "Silver (VIP Max)", color: "#c0c0c0" },
 ];
 
 export default function Profile() {
@@ -30,7 +31,7 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "customize" | "settings">("dashboard");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>("magenta");
-  const [selectedNameColor, setSelectedNameColor] = useState<string>("white");
+  const [selectedNameColor, setSelectedNameColor] = useState<string>("#00eaff");
   const [editData, setEditData] = useState({
     name: user?.name || "",
     bio: "",
@@ -40,6 +41,12 @@ export default function Profile() {
   const { data: profile, isLoading: profileLoading } = trpc.profile.getMe.useQuery(undefined, {
     enabled: !!user,
   });
+
+  // Update selected theme and name color when profile loads
+  React.useEffect(() => {
+    if (profile?.neonTheme) setSelectedTheme(profile.neonTheme);
+    if (profile?.nameColor) setSelectedNameColor(profile.nameColor);
+  }, [profile]);
 
   // Mutations
   const updateProfileMutation = trpc.profile.updateProfile.useMutation();
@@ -109,11 +116,7 @@ export default function Profile() {
             <h1 className="text-3xl font-bold text-[#ff00cc]">My Profile</h1>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => navigate("/")} className="text-[#00eaff] border-[#00eaff]">
-                Back
-              </Button>
-              <Button onClick={() => navigate("/settings")} className="bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black">
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
+                Back to Home
               </Button>
             </div>
           </div>
@@ -156,7 +159,7 @@ export default function Profile() {
                 </div>
                 <h2
                   className="text-3xl font-bold mb-2"
-                  style={{ color: selectedNameColor === "white" ? "#ffffff" : selectedNameColor === "magenta" ? "#ff00cc" : selectedNameColor === "cyan" ? "#00eaff" : selectedNameColor === "purple" ? "#b000ff" : selectedNameColor === "gold" ? "#ffd700" : "#c0c0c0" }}
+                  style={{ color: selectedNameColor }}
                 >
                   {user?.name}
                 </h2>
@@ -359,14 +362,15 @@ export default function Profile() {
               )}
 
               {/* Danger Zone */}
-              <div className="mt-8 pt-8 border-t border-[#2a2f3e]">
-                <h4 className="text-lg font-bold text-red-500 mb-4">Danger Zone</h4>
+                  <div className="mt-8 pt-8 border-t border-[#2a2f3e]">
+                <h4 className="text-lg font-bold text-[#00eaff] mb-4">Account Security</h4>
+                <p className="text-[#7a7f8e] text-sm mb-4">Your account is secured with Manus OAuth. To change your password, please visit your Manus account settings.</p>
                 <Button
-                  onClick={() => navigate("/settings/change-password")}
+                  onClick={() => window.open("https://manus.im/account", "_blank")}
                   variant="outline"
-                  className="w-full text-red-500 border-red-500 hover:bg-red-500/10"
+                  className="w-full text-[#ff00cc] border-[#ff00cc] hover:bg-[#ff00cc]/10"
                 >
-                  Change Password
+                  Go to Manus Account Settings
                 </Button>
               </div>
             </Card>

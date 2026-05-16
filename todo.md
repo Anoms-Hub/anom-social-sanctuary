@@ -327,10 +327,10 @@
 
 
 ## CRITICAL BUGS TO FIX - PRIORITY
-- [ ] Dashboard not displaying properly for authenticated users
-- [ ] Profile name color customization not working
-- [ ] Profile color picker not updating colors
-- [ ] Video links in Kids Corner showing placeholders instead of real YouTube videos
-- [ ] Feature navigation links broken or incorrect
-- [ ] Only one YouTube video implemented, need to populate others
-- [ ] Video player not loading correctly
+- [x] Dashboard not displaying properly for authenticated users
+- [x] Profile name color customization not working - FIXED: Added updateNameColor procedure and hex color storage
+- [x] Profile color picker not updating colors - FIXED: Colors now persist to database via updateNameColor
+- [x] Video links in Kids Corner showing placeholders instead of real YouTube videos - FIXED: Added 6 Pixel & Dot episodes
+- [x] Feature navigation links broken or incorrect - FIXED: Removed invalid route from App.tsx
+- [x] Only one YouTube video implemented, need to populate others - FIXED: Now 6 episodes available
+- [x] Video player not loading correctly - FIXED: Completion tracking wired properly

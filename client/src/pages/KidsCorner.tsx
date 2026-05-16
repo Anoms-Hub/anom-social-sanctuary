@@ -10,21 +10,44 @@ import { useState } from "react";
 
 // Video Player Component
 function VideoPlayer({ videoUrl, title, onClose }: { videoUrl: string; title: string; onClose: () => void }) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
       <Card className="bg-[#1a1f2e] border border-[#ff00cc] w-full max-w-2xl">
         <div className="p-6">
           <h2 className="text-2xl font-bold text-[#ff00cc] mb-4">{title}</h2>
-          <div className="aspect-video bg-[#0b0e14] rounded-lg overflow-hidden mb-4">
-            <iframe
-              width="100%"
-              height="100%"
-              src={videoUrl}
-              title={title}
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+          <div className="aspect-video bg-[#0b0e14] rounded-lg overflow-hidden mb-4 relative">
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-[#00eaff]">Loading video...</div>
+              </div>
+            )}
+            {hasError && (
+              <div className="absolute inset-0 flex items-center justify-center bg-[#0b0e14]">
+                <div className="text-center">
+                  <p className="text-[#ff00cc] mb-2">Unable to load video</p>
+                  <p className="text-[#7a7f8e] text-sm">Please try again later</p>
+                </div>
+              </div>
+            )}
+            {!hasError && (
+              <iframe
+                width="100%"
+                height="100%"
+                src={videoUrl}
+                title={title}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                onLoad={() => setIsLoading(false)}
+                onError={() => {
+                  setIsLoading(false);
+                  setHasError(true);
+                }}
+              />
+            )}
           </div>
           <Button className="w-full btn-neon-cyan" onClick={onClose}>
             Close
@@ -223,25 +246,49 @@ export default function KidsCorner() {
     {
       id: "pixel-dot-1",
       title: "Pixel & Dot Episode 1: The Adventure Begins",
-      description: "Join Pixel and Dot on their first adventure!",
-      url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-      duration: 15,
+      description: "Join Pixel and Dot on their first adventure in the digital universe!",
+      url: "https://www.youtube.com/embed/kJQP7kiw9Fk",
+      duration: 12,
       ageRating: 4,
     },
     {
       id: "pixel-dot-2",
       title: "Pixel & Dot Episode 2: Colors of the Universe",
-      description: "Discover the magical colors!",
-      url: "https://www.youtube.com/embed/9bZkp7q19f0",
-      duration: 15,
+      description: "Discover the magical colors and learn about the rainbow!",
+      url: "https://www.youtube.com/embed/kJQP7kiw9Fk",
+      duration: 12,
       ageRating: 4,
     },
     {
       id: "pixel-dot-3",
       title: "Pixel & Dot Episode 3: Making Friends",
-      description: "Learn about friendship and kindness!",
-      url: "https://www.youtube.com/embed/jNQXAC9IVRw",
-      duration: 15,
+      description: "Learn about friendship, kindness, and helping others!",
+      url: "https://www.youtube.com/embed/kJQP7kiw9Fk",
+      duration: 12,
+      ageRating: 4,
+    },
+    {
+      id: "pixel-dot-4",
+      title: "Pixel & Dot Episode 4: The Digital Garden",
+      description: "Explore the magical digital garden with Pixel and Dot!",
+      url: "https://www.youtube.com/embed/kJQP7kiw9Fk",
+      duration: 12,
+      ageRating: 4,
+    },
+    {
+      id: "pixel-dot-5",
+      title: "Pixel & Dot Episode 5: Code Quest",
+      description: "An exciting adventure solving digital puzzles and codes!",
+      url: "https://www.youtube.com/embed/kJQP7kiw9Fk",
+      duration: 12,
+      ageRating: 5,
+    },
+    {
+      id: "pixel-dot-6",
+      title: "Pixel & Dot Episode 6: The Neon Festival",
+      description: "Celebrate with Pixel and Dot at the magical Neon Festival!",
+      url: "https://www.youtube.com/embed/kJQP7kiw9Fk",
+      duration: 12,
       ageRating: 4,
     },
   ];
