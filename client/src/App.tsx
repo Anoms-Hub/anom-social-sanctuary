@@ -24,6 +24,7 @@ import YouTubeManager from "./pages/YouTubeManager";
 import PaymentMerchManagement from "./pages/PaymentMerchManagement";
 import BusinessControlCenter from "./pages/BusinessControlCenter";
 import ChatWidget from "./components/ChatWidget";
+import MissionRally from "./pages/MissionRally";
 
 const AppRoutes = () => {
   // make sure to consider if you need authentication for certain routes
@@ -47,7 +48,8 @@ const AppRoutes = () => {
       <Route path="/payment-merch" component={PaymentMerchManagement} />
       <Route path="/business-control" component={BusinessControlCenter} />
       <Route path="/profile/:userId" component={PublicProfile} />
-      <Route path={"/404"} component={NotFound} />
+      <Route path="/mission" component={MissionRally} />
+      <Route path={"404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>

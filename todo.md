@@ -283,3 +283,44 @@
 - [ ] Add typing indicators
 - [ ] Build chat settings and preferences
 - [ ] Implement message pinning and bookmarks
+
+
+## Phase 25: Mission Rally - Core Message & Impact
+- [ ] Create mission statement page with core values
+- [ ] Design impact dashboard showing social good metrics
+- [ ] Build real-time impact counter (lives touched, projects completed, coins donated)
+- [ ] Create mission manifesto section
+- [ ] Add video testimonials from community members
+- [ ] Build mission FAQ section
+- [ ] Create downloadable mission guide
+- [ ] Add social media integration for mission sharing
+
+## Phase 26: Community Stories & Member Spotlights
+- [ ] Create member spotlight feature
+- [ ] Build community stories section
+- [ ] Implement story submission workflow
+- [ ] Create story gallery with filters
+- [ ] Add member profile cards with impact metrics
+- [ ] Build featured stories carousel
+- [ ] Create impact story templates
+- [ ] Add story sharing and social integration
+
+## Phase 27: Social Good Leaderboard & Impact Metrics
+- [ ] Create social good leaderboard (individuals)
+- [ ] Build organization/lounge leaderboard
+- [ ] Implement impact scoring system
+- [ ] Create monthly/yearly impact reports
+- [ ] Build impact category leaderboards (education, environment, health, etc.)
+- [ ] Add achievement badges for impact milestones
+- [ ] Create impact analytics dashboard
+- [ ] Build impact goal tracking
+
+## Phase 28: Call-to-Action & Mission Onboarding
+- [ ] Create mission onboarding flow for new users
+- [ ] Build "Join the Mission" CTA throughout platform
+- [ ] Create mission pledge system
+- [ ] Implement mission-based challenges
+- [ ] Build mission ambassador program
+- [ ] Create referral rewards for mission recruitment
+- [ ] Add mission newsletter signup
+- [ ] Build mission event calendar
