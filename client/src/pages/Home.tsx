@@ -231,6 +231,9 @@ export default function Home() {
               <Button className="w-full btn-neon-magenta" onClick={() => navigate("/merch")}>
                 Custom Merch
               </Button>
+              <Button className="w-full btn-neon-cyan" onClick={() => navigate("/collaboration")}>
+                Collaboration Station
+              </Button>
             </div>
           </div>
 

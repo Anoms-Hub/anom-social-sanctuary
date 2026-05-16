@@ -1194,3 +1194,124 @@ export async function getUserCollaborationProjects(userId: number) {
     throw error;
   }
 }
+
+export async function addCollaborationMember(projectId: number, userId: number, role: "creator" | "member" = "member") {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot add collaboration member: database not available");
+    return undefined;
+  }
+
+  try {
+    return await db.insert(collaborationMembers).values({
+      projectId,
+      userId,
+      role: role === "creator" ? "creator" : "member",
+    });
+  } catch (error) {
+    console.error("[Database] Failed to add collaboration member:", error);
+    throw error;
+  }
+}
+
+export async function createCollaborationTask(
+  projectId: number,
+  title: string,
+  description?: string,
+  assignedTo?: number
+) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create collaboration task: database not available");
+    return undefined;
+  }
+
+  try {
+    return await db.insert(collaborationTasks).values({
+      projectId,
+      title,
+      description: description || null,
+      assignedTo: assignedTo || null,
+      status: "pending",
+    });
+  } catch (error) {
+    console.error("[Database] Failed to create collaboration task:", error);
+    throw error;
+  }
+}
+
+export async function getCollaborationTasks(projectId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get collaboration tasks: database not available");
+    return [];
+  }
+
+  try {
+    return await db
+      .select()
+      .from(collaborationTasks)
+      .where(eq(collaborationTasks.projectId, projectId))
+      .orderBy(desc(collaborationTasks.createdAt));
+  } catch (error) {
+    console.error("[Database] Failed to get collaboration tasks:", error);
+    throw error;
+  }
+}
+
+export async function completeCollaborationTask(taskId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot complete collaboration task: database not available");
+    return undefined;
+  }
+
+  try {
+    return await db
+      .update(collaborationTasks)
+      .set({ status: "completed" })
+      .where(eq(collaborationTasks.id, taskId));
+  } catch (error) {
+    console.error("[Database] Failed to complete collaboration task:", error);
+    throw error;
+  }
+}
+
+export async function createCollaborationUpdate(projectId: number, userId: number, content: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create collaboration update: database not available");
+    return undefined;
+  }
+
+  try {
+    return await db.insert(collaborationUpdates).values({
+      projectId,
+      userId,
+      content,
+      updateType: "comment",
+    });
+  } catch (error) {
+    console.error("[Database] Failed to create collaboration update:", error);
+    throw error;
+  }
+}
+
+export async function getCollaborationUpdates(projectId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get collaboration updates: database not available");
+    return [];
+  }
+
+  try {
+    return await db
+      .select()
+      .from(collaborationUpdates)
+      .where(eq(collaborationUpdates.projectId, projectId))
+      .orderBy(desc(collaborationUpdates.createdAt));
+  } catch (error) {
+    console.error("[Database] Failed to get collaboration updates:", error);
+    throw error;
+  }
+}

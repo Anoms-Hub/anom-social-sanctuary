@@ -233,6 +233,96 @@ export const appRouter = router({
     }),
   }),
 
+  collaboration: router({
+    createProject: protectedProcedure
+      .input(
+        z.object({
+          title: z.string().min(1, "Title is required"),
+          description: z.string().optional(),
+          cause: z.string().min(1, "Cause is required"),
+          imageUrl: z.string().optional(),
+          coinRewardPerTask: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { createCollaborationProject } = await import("./db");
+        return await createCollaborationProject(ctx.user.id, input);
+      }),
+
+    getProjects: publicProcedure
+      .input(z.object({ limit: z.number().default(20), offset: z.number().default(0) }))
+      .query(async ({ input }) => {
+        const { getCollaborationProjects } = await import("./db");
+        return await getCollaborationProjects(input.limit, input.offset);
+      }),
+
+    getProject: publicProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ input }) => {
+        const { getCollaborationProject } = await import("./db");
+        return await getCollaborationProject(input.projectId);
+      }),
+
+    getMyProjects: protectedProcedure.query(async ({ ctx }) => {
+      const { getUserCollaborationProjects } = await import("./db");
+      return await getUserCollaborationProjects(ctx.user.id);
+    }),
+
+    joinProject: protectedProcedure
+      .input(z.object({ projectId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { addCollaborationMember } = await import("./db");
+        return await addCollaborationMember(input.projectId, ctx.user.id, "member");
+      }),
+
+    createTask: protectedProcedure
+      .input(
+        z.object({
+          projectId: z.number(),
+          title: z.string().min(1),
+          description: z.string().optional(),
+          assignedTo: z.number().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { createCollaborationTask } = await import("./db");
+        return await createCollaborationTask(input.projectId, input.title, input.description, input.assignedTo);
+      }),
+
+    getTasks: publicProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ input }) => {
+        const { getCollaborationTasks } = await import("./db");
+        return await getCollaborationTasks(input.projectId);
+      }),
+
+    completeTask: protectedProcedure
+      .input(z.object({ taskId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { completeCollaborationTask } = await import("./db");
+        return await completeCollaborationTask(input.taskId);
+      }),
+
+    getUpdates: publicProcedure
+      .input(z.object({ projectId: z.number() }))
+      .query(async ({ input }) => {
+        const { getCollaborationUpdates } = await import("./db");
+        return await getCollaborationUpdates(input.projectId);
+      }),
+
+    addUpdate: protectedProcedure
+      .input(
+        z.object({
+          projectId: z.number(),
+          content: z.string().min(1),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { createCollaborationUpdate } = await import("./db");
+        return await createCollaborationUpdate(input.projectId, ctx.user.id, input.content);
+      }),
+  }),
+
   admin: router({
     getMerchRequests: protectedProcedure
       .input(z.object({ status: z.enum(["pending", "approved", "in_progress", "completed", "rejected"]).optional() }))
