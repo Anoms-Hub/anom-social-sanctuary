@@ -43,6 +43,9 @@
 }
 
 :root {
+  --color-primary: #ff00cc;
+  --color-secondary: #00eaff;
+  --color-accent: #9d4edd;
   --primary: #ff00cc;
   --primary-foreground: #0b0e14;
   --sidebar-primary: #ff00cc;

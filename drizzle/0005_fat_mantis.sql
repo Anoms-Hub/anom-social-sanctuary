@@ -1,0 +1,1 @@
+ALTER TABLE `user_profiles` ADD `name_color` varchar(7) DEFAULT '#00eaff';

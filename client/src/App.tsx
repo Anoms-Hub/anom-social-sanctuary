@@ -1,5 +1,6 @@
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useAuth } from "@/_core/hooks/useAuth";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -18,6 +19,11 @@ import Admin from "./pages/Admin";
 import PublicProfile from "./pages/PublicProfile";
 import CollaborationStation from "./pages/CollaborationStation";
 import OwnerSettings from "./pages/OwnerSettings";
+import ColorCustomizer from "./components/ColorCustomizer";
+import YouTubeManager from "./pages/YouTubeManager";
+import PaymentMerchManagement from "./pages/PaymentMerchManagement";
+import BusinessControlCenter from "./pages/BusinessControlCenter";
+import ChatWidget from "./components/ChatWidget";
 
 const AppRoutes = () => {
   // make sure to consider if you need authentication for certain routes
@@ -37,6 +43,9 @@ const AppRoutes = () => {
       <Route path="/admin" component={Admin} />
       <Route path="/collaboration" component={CollaborationStation} />
       <Route path="/owner-settings" component={OwnerSettings} />
+      <Route path="/youtube-manager" component={YouTubeManager} />
+      <Route path="/payment-merch" component={PaymentMerchManagement} />
+      <Route path="/business-control" component={BusinessControlCenter} />
       <Route path="/profile/:userId" component={PublicProfile} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
@@ -51,6 +60,7 @@ const AppRoutes = () => {
 // - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
 
 function App() {
+  const { isAuthenticated } = useAuth();
   return (
     <ErrorBoundary>
       <ThemeProvider
@@ -59,7 +69,9 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
+          <ColorCustomizer />
           <AppRoutes />
+          {isAuthenticated && <ChatWidget />}
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

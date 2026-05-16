@@ -28,6 +28,7 @@ export const userProfiles = mysqlTable("user_profiles", {
   bio: text("bio"),
   avatarUrl: text("avatar_url"),
   neonTheme: varchar("neon_theme", { length: 50 }).default("magenta"),
+  nameColor: varchar("name_color", { length: 7 }).default("#00eaff"), // hex color for VIP name display
   decorationPackageIds: json("decoration_package_ids").$type<number[]>().default([]),
   level: int("level").default(1),
   xp: int("xp").default(0),
@@ -363,3 +364,157 @@ export const auditLog = mysqlTable("audit_log", {
 
 export type AuditLog = typeof auditLog.$inferSelect;
 export type InsertAuditLog = typeof auditLog.$inferInsert;
+
+
+/**
+ * VIP Tiers — defines VIP membership levels and benefits
+ */
+export const vipTiers = mysqlTable("vip_tiers", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 50 }).notNull(), // "free_vip", "vip", "vip_max"
+  displayName: varchar("display_name", { length: 100 }).notNull(), // "Free VIP", "VIP", "VIP Max"
+  monthlyPrice: decimal("monthly_price", { precision: 10, scale: 2 }).notNull(), // 0, 10, 25, etc.
+  description: text("description"),
+  benefits: json("benefits").$type<string[]>().default([]),
+  coinMultiplier: decimal("coin_multiplier", { precision: 3, scale: 2 }).default("1.0"), // 1.0x, 1.5x, 2.0x
+  xpMultiplier: decimal("xp_multiplier", { precision: 3, scale: 2 }).default("1.0"),
+  badgeColor: varchar("badge_color", { length: 7 }).default("#ff00cc"), // hex color
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type VipTier = typeof vipTiers.$inferSelect;
+export type InsertVipTier = typeof vipTiers.$inferInsert;
+
+/**
+ * User VIP Subscriptions — tracks user VIP membership and billing
+ */
+export const userVipSubscriptions = mysqlTable("user_vip_subscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("user_id").notNull().unique(),
+  vipTierId: int("vip_tier_id").notNull(),
+  stripeSubscriptionId: varchar("stripe_subscription_id", { length: 100 }),
+  stripeCustomerId: varchar("stripe_customer_id", { length: 100 }),
+  status: mysqlEnum("status", ["active", "canceled", "past_due", "unpaid"]).default("active"),
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  canceledAt: timestamp("canceled_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserVipSubscription = typeof userVipSubscriptions.$inferSelect;
+export type InsertUserVipSubscription = typeof userVipSubscriptions.$inferInsert;
+
+/**
+ * VIP Benefits Log — tracks when users use VIP benefits
+ */
+export const vipBenefitsLog = mysqlTable("vip_benefits_log", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("user_id").notNull(),
+  benefit: varchar("benefit", { length: 100 }).notNull(), // "double_coins", "priority_support", "exclusive_merch", etc.
+  description: text("description"),
+  value: decimal("value", { precision: 10, scale: 2 }), // bonus coins, discount percentage, etc.
+  usedAt: timestamp("used_at").defaultNow().notNull(),
+});
+
+export type VipBenefitsLog = typeof vipBenefitsLog.$inferSelect;
+export type InsertVipBenefitsLog = typeof vipBenefitsLog.$inferInsert;
+
+
+/**
+ * Chat Channels — topic-specific channels for community conversations
+ */
+export const chatChannels = mysqlTable("chat_channels", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  type: mysqlEnum("type", ["global", "announcements", "support", "events", "off_topic", "private"]).default("global"),
+  createdBy: int("created_by").notNull(),
+  isPublic: boolean("is_public").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ChatChannel = typeof chatChannels.$inferSelect;
+export type InsertChatChannel = typeof chatChannels.$inferInsert;
+
+/**
+ * Chat Messages — individual messages in channels or DMs
+ */
+export const chatMessages = mysqlTable("chat_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  channelId: int("channel_id"),
+  senderId: int("sender_id").notNull(),
+  recipientId: int("recipient_id"), // for DMs
+  content: text("content").notNull(),
+  messageType: mysqlEnum("message_type", ["text", "image", "file", "system"]).default("text"),
+  mediaUrl: text("media_url"), // for images/files
+  isPinned: boolean("is_pinned").default(false),
+  isEdited: boolean("is_edited").default(false),
+  editedAt: timestamp("edited_at"),
+  deletedAt: timestamp("deleted_at"), // soft delete
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type InsertChatMessage = typeof chatMessages.$inferInsert;
+
+/**
+ * Chat Reactions — emoji reactions on messages
+ */
+export const chatReactions = mysqlTable("chat_reactions", {
+  id: int("id").autoincrement().primaryKey(),
+  messageId: int("message_id").notNull(),
+  userId: int("user_id").notNull(),
+  emoji: varchar("emoji", { length: 10 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type ChatReaction = typeof chatReactions.$inferSelect;
+export type InsertChatReaction = typeof chatReactions.$inferInsert;
+
+/**
+ * Chat Channel Members — tracks who's in which channels
+ */
+export const chatChannelMembers = mysqlTable("chat_channel_members", {
+  id: int("id").autoincrement().primaryKey(),
+  channelId: int("channel_id").notNull(),
+  userId: int("user_id").notNull(),
+  role: mysqlEnum("role", ["member", "moderator", "admin"]).default("member"),
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  lastReadAt: timestamp("last_read_at").defaultNow().notNull(),
+});
+
+export type ChatChannelMember = typeof chatChannelMembers.$inferSelect;
+export type InsertChatChannelMember = typeof chatChannelMembers.$inferInsert;
+
+/**
+ * User Presence — tracks online/offline status
+ */
+export const userPresence = mysqlTable("user_presence", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("user_id").notNull().unique(),
+  status: mysqlEnum("status", ["online", "away", "offline"]).default("offline"),
+  lastSeenAt: timestamp("last_seen_at").defaultNow().notNull(),
+  currentChannelId: int("current_channel_id"),
+});
+
+export type UserPresence = typeof userPresence.$inferSelect;
+export type InsertUserPresence = typeof userPresence.$inferInsert;
+
+/**
+ * Chat Notifications — notification preferences and history
+ */
+export const chatNotifications = mysqlTable("chat_notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("user_id").notNull(),
+  messageId: int("message_id").notNull(),
+  channelId: int("channel_id"),
+  type: mysqlEnum("type", ["mention", "direct_message", "channel_message", "system"]).default("channel_message"),
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  readAt: timestamp("read_at"),
+});
+
+export type ChatNotification = typeof chatNotifications.$inferSelect;
+export type InsertChatNotification = typeof chatNotifications.$inferInsert;

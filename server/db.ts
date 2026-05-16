@@ -1,6 +1,6 @@
 import { eq, and, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, userProfiles, decorationPackages, coinTransactions, achievements, userAchievements, lounges, loungeMembers, loungeMessages, kidsProgress, collaborationProjects, collaborationMembers, collaborationTasks, collaborationUpdates, platformSettings, InsertPlatformSettings, auditLog } from "../drizzle/schema";
+import { InsertUser, users, userProfiles, decorationPackages, coinTransactions, achievements, userAchievements, lounges, loungeMembers, loungeMessages, kidsProgress, collaborationProjects, collaborationMembers, collaborationTasks, collaborationUpdates, platformSettings, InsertPlatformSettings, auditLog, vipTiers, userVipSubscriptions, vipBenefitsLog } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -1414,4 +1414,85 @@ export async function getAuditLog(limit = 100, offset = 0) {
     console.error("[Database] Failed to get audit log:", error);
     throw error;
   }
+}
+
+
+// ============ VIP MEMBERSHIP HELPERS ============
+
+export async function getVipTiers() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.select().from(vipTiers).orderBy(sql`monthly_price ASC`);
+}
+
+export async function getUserVipSubscription(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const sub = await db
+    .select()
+    .from(userVipSubscriptions)
+    .where(eq(userVipSubscriptions.userId, userId))
+    .limit(1);
+  return sub[0] || null;
+}
+
+export async function createVipSubscription(userId: number, vipTierId: number, stripeSubscriptionId?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(userVipSubscriptions).values({
+    userId,
+    vipTierId,
+    stripeSubscriptionId,
+    status: "active",
+    currentPeriodStart: new Date(),
+    currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+  });
+  return result;
+}
+
+export async function updateVipSubscription(userId: number, vipTierId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db
+    .update(userVipSubscriptions)
+    .set({
+      vipTierId,
+      updatedAt: new Date(),
+    })
+    .where(eq(userVipSubscriptions.userId, userId));
+}
+
+export async function cancelVipSubscription(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db
+    .update(userVipSubscriptions)
+    .set({
+      status: "canceled",
+      canceledAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(userVipSubscriptions.userId, userId));
+}
+
+export async function logVipBenefit(userId: number, benefit: string, description?: string, value?: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(vipBenefitsLog).values({
+    userId,
+    benefit,
+    description,
+    value: value ? value.toString() : undefined,
+  });
+}
+
+export async function getVipBenefitsLog(userId: number, limit = 10) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db
+    .select()
+    .from(vipBenefitsLog)
+    .where(eq(vipBenefitsLog.userId, userId))
+    .orderBy(desc(vipBenefitsLog.usedAt))
+    .limit(limit);
 }

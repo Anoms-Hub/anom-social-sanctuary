@@ -29,6 +29,27 @@
       "when": 1778889988607,
       "tag": "0003_romantic_bloodaxe",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1778890536854,
+      "tag": "0004_dry_warlock",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1778890636295,
+      "tag": "0005_fat_mantis",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1778890891357,
+      "tag": "0006_groovy_jackal",
+      "breakpoints": true
     }
   ]
 }

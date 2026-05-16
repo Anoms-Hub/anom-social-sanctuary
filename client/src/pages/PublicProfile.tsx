@@ -1,7 +1,7 @@
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Share2, Copy, Heart, Trophy, Zap } from "lucide-react";
+import { Share2, Copy, Heart, Trophy, Zap, Star, Shield, Sparkles, Award } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -163,6 +163,93 @@ export default function PublicProfile() {
           </Card>
         </div>
 
+        {/* Badges & Decorations Section */}
+        <Card
+          className="bg-[#1a1f2e] border border-[#2a2f3e] p-6 mb-8"
+          style={{
+            boxShadow: "0 0 15px rgba(157, 78, 221, 0.4), 0 0 30px rgba(157, 78, 221, 0.2)",
+          }}
+        >
+          <h3 className="text-xl font-bold text-[#9d4edd] mb-6 flex items-center gap-2">
+            <Sparkles className="w-5 h-5" />
+            Earned & Purchased Decorations
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Character Badges */}
+            <div className="p-4 bg-[#0b0e14] rounded-lg border border-[#2a2f3e] hover:border-[#ff00cc] transition-colors cursor-pointer">
+              <div className="text-3xl mb-2">🦸</div>
+              <p className="text-[#00eaff] font-bold text-sm">Hero Badge</p>
+              <p className="text-[#7a7f8e] text-xs">Earned</p>
+            </div>
+            <div className="p-4 bg-[#0b0e14] rounded-lg border border-[#2a2f3e] hover:border-[#ff00cc] transition-colors cursor-pointer">
+              <div className="text-3xl mb-2">🎨</div>
+              <p className="text-[#00eaff] font-bold text-sm">Artist Badge</p>
+              <p className="text-[#7a7f8e] text-xs">Purchased</p>
+            </div>
+            <div className="p-4 bg-[#0b0e14] rounded-lg border border-[#2a2f3e] hover:border-[#ff00cc] transition-colors cursor-pointer">
+              <div className="text-3xl mb-2">🌟</div>
+              <p className="text-[#00eaff] font-bold text-sm">Star Badge</p>
+              <p className="text-[#7a7f8e] text-xs">Earned</p>
+            </div>
+            <div className="p-4 bg-[#0b0e14] rounded-lg border border-[#2a2f3e] hover:border-[#ff00cc] transition-colors cursor-pointer">
+              <div className="text-3xl mb-2">💎</div>
+              <p className="text-[#00eaff] font-bold text-sm">Diamond Badge</p>
+              <p className="text-[#7a7f8e] text-xs">Purchased</p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Mood Glows Section */}
+        <Card
+          className="bg-[#1a1f2e] border border-[#2a2f3e] p-6 mb-8"
+          style={{
+            boxShadow: "0 0 15px rgba(0, 234, 255, 0.3), 0 0 30px rgba(0, 234, 255, 0.1)",
+          }}
+        >
+          <h3 className="text-xl font-bold text-[#00eaff] mb-4 flex items-center gap-2">
+            <Star className="w-5 h-5" />
+            Mood Glows
+          </h3>
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+            {["😊", "🔥", "💜", "✨", "🌈", "💫"].map((emoji, i) => (
+              <div key={i} className="p-3 bg-[#0b0e14] rounded-lg border border-[#2a2f3e] text-center hover:scale-110 transition-transform cursor-pointer">
+                <div className="text-2xl">{emoji}</div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Neon Themes Section */}
+        <Card
+          className="bg-[#1a1f2e] border border-[#2a2f3e] p-6 mb-8"
+          style={{
+            boxShadow: "0 0 15px rgba(255, 0, 204, 0.3), 0 0 30px rgba(255, 0, 204, 0.1)",
+          }}
+        >
+          <h3 className="text-xl font-bold text-[#ff00cc] mb-4 flex items-center gap-2">
+            <Shield className="w-5 h-5" />
+            Neon Themes
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-4 bg-gradient-to-br from-[#ff00cc] to-[#9d4edd] rounded-lg border-2 border-[#ff00cc] text-center cursor-pointer hover:scale-105 transition-transform">
+              <p className="text-white font-bold">Magenta Dream</p>
+              <p className="text-white text-xs opacity-75">Active</p>
+            </div>
+            <div className="p-4 bg-gradient-to-br from-[#00eaff] to-[#0099ff] rounded-lg border border-[#2a2f3e] text-center hover:border-[#00eaff] transition-colors cursor-pointer hover:scale-105">
+              <p className="text-white font-bold">Cyan Wave</p>
+              <p className="text-white text-xs opacity-75">Purchased</p>
+            </div>
+            <div className="p-4 bg-gradient-to-br from-[#9d4edd] to-[#ff00cc] rounded-lg border border-[#2a2f3e] text-center hover:border-[#9d4edd] transition-colors cursor-pointer hover:scale-105">
+              <p className="text-white font-bold">Purple Haze</p>
+              <p className="text-white text-xs opacity-75">Earned</p>
+            </div>
+            <div className="p-4 bg-gradient-to-br from-[#00ff88] to-[#00eaff] rounded-lg border border-[#2a2f3e] text-center hover:border-[#00ff88] transition-colors cursor-pointer hover:scale-105">
+              <p className="text-white font-bold">Neon Green</p>
+              <p className="text-white text-xs opacity-75">Purchased</p>
+            </div>
+          </div>
+        </Card>
+
         {/* Achievements Section */}
         {profile.achievements && profile.achievements > 0 && (
           <Card
@@ -171,12 +258,16 @@ export default function PublicProfile() {
               boxShadow: "0 0 10px rgba(0, 234, 255, 0.2), 0 0 20px rgba(0, 234, 255, 0.1)",
             }}
           >
-            <h3 className="text-xl font-bold text-[#ff00cc] mb-4">Achievements</h3>
+            <h3 className="text-xl font-bold text-[#ff00cc] mb-4 flex items-center gap-2">
+              <Award className="w-5 h-5" />
+              Achievements
+            </h3>
             <div className="grid grid-cols-4 gap-4">
               {Array.from({ length: profile.achievements }).map((_, i) => (
                 <div
                   key={i}
-                  className="w-16 h-16 rounded-lg bg-gradient-to-br from-[#ff00cc] to-[#9d4edd] flex items-center justify-center text-2xl hover:scale-110 transition-transform"
+                  className="w-16 h-16 rounded-lg bg-gradient-to-br from-[#ff00cc] to-[#9d4edd] flex items-center justify-center text-2xl hover:scale-110 transition-transform cursor-pointer"
+                  title="Achievement unlocked"
                 >
                   🏆
                 </div>

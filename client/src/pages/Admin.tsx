@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, ShoppingBag, TrendingUp, Settings, AlertCircle } from "lucide-react";
+import { Users, ShoppingBag, TrendingUp, Settings, AlertCircle, Play, CreditCard, Shield } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -95,6 +95,18 @@ export default function Admin() {
             </Button>
             <h1 className="text-2xl font-bold neon-text-magenta">Admin Dashboard</h1>
           </div>
+          <Button variant="outline" className="text-[#ff00cc] border-[#2a2f3e] gap-2" onClick={() => navigate("/business-control")}>
+            <Shield className="w-4 h-4" />
+            Business Control
+          </Button>
+          <Button variant="outline" className="text-[#ff00cc] border-[#2a2f3e] gap-2" onClick={() => navigate("/youtube-manager")}>
+            <Play className="w-4 h-4" />
+            YouTube
+          </Button>
+          <Button variant="outline" className="text-[#ff00cc] border-[#2a2f3e] gap-2" onClick={() => navigate("/payment-merch")}>
+            <CreditCard className="w-4 h-4" />
+            Payments
+          </Button>
           <Button variant="outline" className="text-[#ff00cc] border-[#2a2f3e] gap-2" onClick={() => navigate("/owner-settings")}>
             <Settings className="w-4 h-4" />
             Settings
