@@ -1,5 +1,6 @@
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
+import { musicRouter } from "./music.procedures";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { getOrCreateUserProfile, getDecorationPackages, updateUserProfile, getCoinBalance, addCoinTransaction, getCoinTransactionHistory, addXP, getAchievements, getUserAchievements, unlockAchievement, createLounge, getUserLounges, getLounge, getLoungeMembersWithUsers, addLoungeMember, removeLoungeMember, addLoungeMessage, getLoungeMessages, updateLounge, getKidsContent, trackKidsProgress, getUserKidsProgress } from "./db";
 import { z } from "zod";
@@ -373,6 +374,7 @@ export const appRouter = router({
     }),
   }),
 
+  music: musicRouter,
   ownerSettings: router({
     getSettings: publicProcedure.query(async () => {
       const { getPlatformSettings } = await import("./db");

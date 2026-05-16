@@ -35,20 +35,49 @@ export default function Home() {
         <section className="flex-1 px-6 py-20">
           <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
             <div>
+              <div className="mb-6 inline-block bg-[#ff00cc]/20 border border-[#ff00cc] rounded-lg px-4 py-2">
+                <p className="text-[#ff00cc] font-bold text-sm">🌍 Social Good First</p>
+              </div>
               <h1 className="text-5xl font-bold mb-6">
                 <span className="neon-text-magenta">Identity</span>
                 <span className="text-[#00eaff]">, Amplified</span>
               </h1>
               <p className="text-lg text-[#7a7f8e] mb-8">
-                Join the Anom Artsy community — a neon-lit sanctuary where family comes first, creativity thrives, and your identity matters.
+                Join the Anom Artsy community — a neon-lit sanctuary where family comes first, creativity thrives, and your identity matters. Every interaction drives real-world social good impact.
               </p>
-              <a href={getLoginUrl()}>
-                <Button className="btn-neon-cyan text-lg py-6 px-8">
-                  Enter the Universe
-                </Button>
-              </a>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <a href={getLoginUrl()}>
+                  <Button className="btn-neon-cyan text-lg py-6 px-8">
+                    Enter the Universe
+                  </Button>
+                </a>
+                <a href="/mission-hub">
+                  <Button className="bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold text-lg py-6 px-8">
+                    💜 Support Our Mission
+                  </Button>
+                </a>
+              </div>
             </div>
             <SignUpConnectors />
+          </div>
+        </section>
+
+        {/* Mission Section */}
+        <section className="bg-gradient-to-r from-[#ff00cc]/10 to-[#00eaff]/10 border-t border-[#ff00cc] px-6 py-16">
+          <div className="max-w-7xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-6">
+              <span className="neon-text-magenta">Social Good</span>
+              <span className="text-[#00eaff]"> Meets </span>
+              <span className="neon-text-magenta">Creative Power</span>
+            </h2>
+            <p className="text-[#7a7f8e] max-w-2xl mx-auto mb-6">
+              Every coin earned, every collaboration started, every voice amplified—it all drives real impact. Join artists, creators, and visionaries building a better world together.
+            </p>
+            <a href="/mission-hub">
+              <Button className="btn-neon-magenta text-lg py-4 px-8">
+                Explore the Mission
+              </Button>
+            </a>
           </div>
         </section>
 
