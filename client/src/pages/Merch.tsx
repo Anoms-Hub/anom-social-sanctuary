@@ -4,11 +4,19 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ShoppingBag, Plus, CheckCircle2, Clock, Package } from "lucide-react";
+import { ShoppingBag, Plus, CheckCircle2, Clock, Package, Trash2, ShoppingCart } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+
+interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+}
 
 interface MerchOrder {
   id: string;
@@ -20,334 +28,282 @@ interface MerchOrder {
   estimatedDelivery?: string;
 }
 
+const AVAILABLE_MERCH = [
+  { id: "1", name: "Anom Artsy T-Shirt", price: 24.99, image: "👕", category: "clothing" },
+  { id: "2", name: "Neon Hoodie", price: 49.99, image: "🧥", category: "clothing" },
+  { id: "3", name: "Anom Artsy Mug", price: 14.99, image: "☕", category: "accessories" },
+  { id: "4", name: "Sticker Pack", price: 9.99, image: "🏷️", category: "accessories" },
+  { id: "5", name: "Beanie", price: 29.99, image: "🧢", category: "clothing" },
+  { id: "6", name: "Water Bottle", price: 19.99, image: "🧴", category: "accessories" },
+];
+
 export default function Merch() {
-  const { isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
+  const [activeTab, setActiveTab] = useState<"shop" | "requests" | "orders" | "cart">("shop");
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [isRequestOpen, setIsRequestOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [checkoutData, setCheckoutData] = useState({
+    email: user?.email || "",
+    address: "",
+    paymentMethod: "stripe",
+  });
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     design: "",
   });
 
-  // Fetch user's merch requests and orders
-  const { data: myRequests = [], isLoading: requestsLoading } = trpc.merch.getMyRequests.useQuery(undefined, {
-    enabled: isAuthenticated,
-  });
-
-  // Map backend requests to display format
-  const displayOrders: MerchOrder[] = (myRequests || []).map((req: any) => ({
-    id: req.id.toString(),
-    title: req.title,
-    description: req.description,
-    image: "🎨",
-    status: (req.status || "pending") as any,
-    createdAt: new Date(req.createdAt).toISOString().split('T')[0],
-  }));
-
-  const { data: myOrders = [], isLoading: ordersLoading } = trpc.merch.getMyOrders.useQuery(undefined, {
-    enabled: isAuthenticated,
-  });
-
-  // Create merch request mutation
-  const createRequestMutation = trpc.merch.createRequest.useMutation({
-    onSuccess: () => {
-      toast.success("Merch request submitted! Our team will review it shortly. 🎉");
-      setFormData({ title: "", description: "", design: "" });
-      setIsRequestOpen(false);
-    },
-    onError: (error) => {
-      toast.error(`Failed to submit request: ${error.message}`);
-    },
-  });
-
-  const handleRequestMerch = () => {
-    if (!formData.title.trim() || !formData.description.trim()) {
-      toast.error("Please fill in all fields");
-      return;
-    }
-
-    createRequestMutation.mutate({
-      title: formData.title,
-      description: formData.description,
-      referenceImages: [],
-    });
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <Clock className="w-5 h-5 text-[#ff00cc]" />;
-      case "approved":
-        return <CheckCircle2 className="w-5 h-5 text-[#00eaff]" />;
-      case "in_production":
-        return <Package className="w-5 h-5 text-[#9d4edd]" />;
-      case "shipped":
-        return <CheckCircle2 className="w-5 h-5 text-[#00eaff]" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "Pending Review";
-      case "approved":
-        return "Approved";
-      case "in_production":
-        return "In Production";
-      case "shipped":
-        return "Shipped";
-      default:
-        return status;
-    }
-  };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0b0e14] flex items-center justify-center">
-        <div className="text-[#00eaff] text-xl">Loading Merch...</div>
-      </div>
-    );
+    return <div className="min-h-screen bg-[#0b0e14] flex items-center justify-center text-[#ff00cc]">Loading...</div>;
   }
 
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#0b0e14] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-[#00eaff] text-xl mb-4">Please sign in to access merch</p>
-          <Button className="btn-neon-magenta" onClick={() => navigate("/")}>
-            Back to Home
+        <Card className="border-2 border-[#ff00cc] bg-[#0b0e14]/80 p-8">
+          <p className="text-[#ff00cc] mb-4">Please sign in to access the merch shop</p>
+          <Button onClick={() => navigate("/")} className="bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black">
+            Go to Home
           </Button>
-        </div>
+        </Card>
       </div>
     );
   }
 
+  const addToCart = (item: typeof AVAILABLE_MERCH[0]) => {
+    const existing = cart.find(c => c.id === item.id);
+    if (existing) {
+      setCart(cart.map(c => c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c));
+    } else {
+      setCart([...cart, { id: item.id, name: item.name, price: item.price, quantity: 1, image: item.image }]);
+    }
+    toast.success(`${item.name} added to cart!`);
+  };
+
+  const removeFromCart = (id: string) => {
+    setCart(cart.filter(c => c.id !== id));
+  };
+
+  const updateQuantity = (id: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(id);
+    } else {
+      setCart(cart.map(c => c.id === id ? { ...c, quantity } : c));
+    }
+  };
+
+  const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const handleCheckout = () => {
+    if (!checkoutData.address) {
+      toast.error("Please enter a shipping address");
+      return;
+    }
+    toast.success("Order placed successfully! You will receive a confirmation email.");
+    setCart([]);
+    setIsCheckoutOpen(false);
+  };
+
   return (
-    <div className="min-h-screen bg-[#0b0e14] text-[#00eaff]">
-      {/* Navigation */}
-      <nav className="border-b border-[#2a2f3e] px-6 py-4 sticky top-0 bg-[#0b0e14]/95 backdrop-blur z-10">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/")} className="text-[#7a7f8e]">
-              ← Back
-            </Button>
-            <h1 className="text-2xl font-bold neon-text-magenta">White-Glove Merch</h1>
-          </div>
-          <Dialog open={isRequestOpen} onOpenChange={setIsRequestOpen}>
-            <DialogTrigger asChild>
-              <Button className="btn-neon-cyan gap-2">
-                <Plus className="w-4 h-4" />
-                Request Custom Merch
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-[#1a1f2e] border border-[#2a2f3e]">
-              <DialogHeader>
-                <DialogTitle className="text-[#ff00cc]">Request Custom Merch</DialogTitle>
-                <DialogDescription className="text-[#7a7f8e]">
-                  Share your vision and we'll create something amazing for you.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-[#00eaff] text-sm font-medium">Merch Title</label>
-                  <Input
-                    placeholder="e.g., Custom Pixel Hoodie"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="bg-[#0b0e14] border-[#2a2f3e] text-[#00eaff] placeholder-[#7a7f8e]"
-                  />
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#0b0e14] to-[#1a1f2e] p-4 md:p-8">
+      {/* Header */}
+      <div className="max-w-7xl mx-auto mb-8">
+        <h1 className="text-4xl font-bold text-[#ff00cc] mb-2 flex items-center gap-3">
+          <ShoppingBag className="w-10 h-10" />
+          Anom Artsy Merch
+        </h1>
+        <p className="text-gray-400">Custom designs, white-glove service, social good impact</p>
+      </div>
 
-                <div>
-                  <label className="text-[#00eaff] text-sm font-medium">Description</label>
-                  <Textarea
-                    placeholder="Describe your merch idea in detail..."
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="bg-[#0b0e14] border-[#2a2f3e] text-[#00eaff] placeholder-[#7a7f8e]"
-                  />
-                </div>
+      {/* Tabs */}
+      <div className="max-w-7xl mx-auto mb-8 flex gap-2 flex-wrap">
+        {[
+          { id: "shop", label: "Shop", icon: "🛍️" },
+          { id: "cart", label: `Cart (${cart.length})`, icon: "🛒" },
+          { id: "requests", label: "My Requests", icon: "📝" },
+          { id: "orders", label: "My Orders", icon: "📦" },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`px-4 py-2 rounded-lg border-2 font-bold transition-all ${
+              activeTab === tab.id
+                ? "border-[#ff00cc] bg-[#ff00cc]/20 text-[#ff00cc]"
+                : "border-[#00eaff] bg-transparent text-[#00eaff] hover:bg-[#00eaff]/10"
+            }`}
+          >
+            {tab.icon} {tab.label}
+          </button>
+        ))}
+      </div>
 
-                <div>
-                  <label className="text-[#00eaff] text-sm font-medium">Design Notes (Optional)</label>
-                  <Textarea
-                    placeholder="Any specific colors, styles, or references?"
-                    value={formData.design}
-                    onChange={(e) => setFormData({ ...formData, design: e.target.value })}
-                    className="bg-[#0b0e14] border-[#2a2f3e] text-[#00eaff] placeholder-[#7a7f8e]"
-                  />
-                </div>
-
-                <Button
-                  className="w-full btn-neon-magenta"
-                  onClick={handleRequestMerch}
-                >
-                  Submit Request
+      {/* Shop Tab */}
+      {activeTab === "shop" && (
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {AVAILABLE_MERCH.map((item) => (
+              <Card key={item.id} className="border-2 border-[#ff00cc] bg-[#0b0e14]/80 p-6 hover:border-[#00eaff] transition-all">
+                <div className="text-6xl mb-4">{item.image}</div>
+                <h3 className="text-xl font-bold text-[#ff00cc] mb-2">{item.name}</h3>
+                <p className="text-2xl font-bold text-[#00eaff] mb-4">${item.price}</p>
+                <Button onClick={() => addToCart(item)} className="w-full bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold">
+                  Add to Cart
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        {/* Info Section */}
-        <Card
-          className="bg-[#1a1f2e] border border-[#2a2f3e] p-8 mb-12"
-          style={{
-            boxShadow: "0 0 10px rgba(0, 234, 255, 0.5), 0 0 20px rgba(0, 234, 255, 0.3)",
-          }}
-        >
-          <div className="flex gap-6 items-start">
-            <ShoppingBag className="w-12 h-12 text-[#ff00cc] flex-shrink-0" />
-            <div>
-              <h2 className="text-2xl font-bold text-[#00eaff] mb-2">Your Bespoke Merch Experience</h2>
-              <p className="text-[#7a7f8e] mb-4">
-                We create custom, high-quality merchandise based on your unique vision. From t-shirts to hoodies, stickers to mugs — your ideas come to life through our white-glove service.
-              </p>
-              <ul className="text-[#7a7f8e] text-sm space-y-2">
-                <li>✨ Custom design consultation</li>
-                <li>✨ Premium quality materials</li>
-                <li>✨ Fast production and shipping</li>
-                <li>✨ Satisfaction guaranteed</li>
-              </ul>
-            </div>
+              </Card>
+            ))}
           </div>
-        </Card>
+        </div>
+      )}
 
-        {/* Your Orders */}
-        <h3 className="text-2xl font-bold text-[#ff00cc] mb-6">Your Orders</h3>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {requestsLoading ? (
-            <p className="text-[#7a7f8e]">Loading your requests...</p>
-          ) : displayOrders.length === 0 ? (
-            <p className="text-[#7a7f8e]">No merch requests yet. Submit one to get started!</p>
-          ) : null}
-          {displayOrders.map((order) => (
-            <Card
-              key={order.id}
-              className="bg-[#1a1f2e] border border-[#2a2f3e] p-6 hover:border-[#ff00cc] transition-colors"
-              style={{
-                boxShadow: "0 0 10px rgba(255, 0, 204, 0.3), 0 0 20px rgba(255, 0, 204, 0.1)",
-              }}
-            >
-              {/* Order Image */}
-              <div className="text-6xl text-center mb-4">{order.image}</div>
-
-              {/* Order Details */}
-              <h4 className="text-lg font-bold text-[#00eaff] mb-2">{order.title}</h4>
-              <p className="text-sm text-[#7a7f8e] mb-4">{order.description}</p>
-
-              {/* Status */}
-              <div className="flex items-center gap-2 mb-4 pb-4 border-b border-[#2a2f3e]">
-                {getStatusIcon(order.status)}
-                <span className="text-sm text-[#7a7f8e]">{getStatusLabel(order.status)}</span>
+      {/* Cart Tab */}
+      {activeTab === "cart" && (
+        <div className="max-w-4xl mx-auto">
+          {cart.length === 0 ? (
+            <Card className="border-2 border-[#00eaff] bg-[#0b0e14]/80 p-8 text-center">
+              <ShoppingCart className="w-16 h-16 text-[#00eaff] mx-auto mb-4 opacity-50" />
+              <p className="text-[#00eaff] text-lg">Your cart is empty</p>
+            </Card>
+          ) : (
+            <>
+              <div className="space-y-4 mb-8">
+                {cart.map((item) => (
+                  <Card key={item.id} className="border-2 border-[#ff00cc] bg-[#0b0e14]/80 p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="text-4xl">{item.image}</div>
+                        <div>
+                          <p className="font-bold text-[#ff00cc]">{item.name}</p>
+                          <p className="text-[#00eaff]">${item.price}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="px-2 py-1 bg-[#ff00cc]/20 text-[#ff00cc] rounded">-</button>
+                          <span className="text-white font-bold w-8 text-center">{item.quantity}</span>
+                          <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="px-2 py-1 bg-[#ff00cc]/20 text-[#ff00cc] rounded">+</button>
+                        </div>
+                        <button onClick={() => removeFromCart(item.id)} className="p-2 text-red-500 hover:bg-red-500/20 rounded">
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
               </div>
 
-              {/* Dates */}
-              <div className="text-xs text-[#7a7f8e] space-y-1">
-                <p>Requested: {order.createdAt}</p>
-                {order.estimatedDelivery && (
-                  <p className="text-[#00eaff]">Est. Delivery: {order.estimatedDelivery}</p>
-                )}
-              </div>
-            </Card>
-          ))}
+              {/* Checkout */}
+              <Card className="border-2 border-[#00eaff] bg-[#0b0e14]/80 p-6">
+                <div className="mb-6">
+                  <p className="text-[#00eaff] text-lg font-bold mb-2">Order Summary</p>
+                  <div className="space-y-2 text-gray-300">
+                    {cart.map((item) => (
+                      <div key={item.id} className="flex justify-between">
+                        <span>{item.name} x{item.quantity}</span>
+                        <span>${(item.price * item.quantity).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="border-t border-[#00eaff]/20 mt-4 pt-4 flex justify-between text-xl font-bold text-[#ff00cc]">
+                    <span>Total:</span>
+                    <span>${cartTotal.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full bg-[#00eaff] hover:bg-[#00eaff]/80 text-black font-bold py-3 text-lg">
+                      Proceed to Checkout
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-[#0b0e14] border-2 border-[#ff00cc]">
+                    <DialogHeader>
+                      <DialogTitle className="text-[#ff00cc]">Checkout</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-300 mb-2">Email</label>
+                        <Input value={checkoutData.email} onChange={(e) => setCheckoutData({ ...checkoutData, email: e.target.value })} className="bg-[#1a1f2e] border-[#ff00cc] text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-300 mb-2">Shipping Address</label>
+                        <Textarea value={checkoutData.address} onChange={(e) => setCheckoutData({ ...checkoutData, address: e.target.value })} placeholder="Street, City, State, ZIP" className="bg-[#1a1f2e] border-[#ff00cc] text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-300 mb-2">Payment Method</label>
+                        <select value={checkoutData.paymentMethod} onChange={(e) => setCheckoutData({ ...checkoutData, paymentMethod: e.target.value })} className="w-full bg-[#1a1f2e] border-2 border-[#ff00cc] text-white p-2 rounded">
+                          <option value="stripe">Credit Card (Stripe)</option>
+                          <option value="paypal">PayPal</option>
+                          <option value="cashapp">Cash App</option>
+                        </select>
+                      </div>
+                      <div className="bg-[#1a1f2e] p-4 rounded border border-[#00eaff]/20">
+                        <p className="text-[#00eaff] font-bold mb-2">Total: ${cartTotal.toFixed(2)}</p>
+                        <p className="text-sm text-gray-400">Shipping will be calculated after checkout</p>
+                      </div>
+                      <Button onClick={handleCheckout} className="w-full bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold py-3">
+                        Complete Order
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </Card>
+            </>
+          )}
         </div>
+      )}
 
-        {/* Portfolio Section */}
-        <h3 className="text-2xl font-bold text-[#ff00cc] mb-6">Completed Pieces Gallery</h3>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            { emoji: "👕", title: "Pixel Tee", artist: "Sarah M." },
-            { emoji: "🧥", title: "Neon Hoodie", artist: "Alex K." },
-            { emoji: "🎨", title: "Sticker Pack", artist: "Jordan L." },
-            { emoji: "🎒", title: "Custom Backpack", artist: "Casey R." },
-            { emoji: "⌚", title: "Anom Watch", artist: "Morgan T." },
-            { emoji: "🧢", title: "Neon Cap", artist: "Riley S." },
-            { emoji: "🛍️", title: "Tote Bag", artist: "Taylor N." },
-            { emoji: "🎁", title: "Gift Box Set", artist: "Jamie P." },
-          ].map((item, idx) => (
-            <Card
-              key={idx}
-              className="bg-[#1a1f2e] border border-[#2a2f3e] p-6 text-center hover:border-[#00eaff] transition-colors"
-              style={{
-                boxShadow: "0 0 10px rgba(0, 234, 255, 0.3), 0 0 20px rgba(0, 234, 255, 0.1)",
-              }}
-            >
-              <div className="text-5xl mb-3">{item.emoji}</div>
-              <h4 className="text-sm font-bold text-[#00eaff] mb-1">{item.title}</h4>
-              <p className="text-xs text-[#7a7f8e]">by {item.artist}</p>
-            </Card>
-          ))}
-        </div>
-
-        {/* CTA Section */}
-        <div className="mt-12 bg-[#1a1f2e] border border-[#2a2f3e] rounded-lg p-8 text-center">
-          <h3 className="text-xl font-bold text-[#ff00cc] mb-4">Ready to Create Something Amazing?</h3>
-          <p className="text-[#7a7f8e] mb-6">
-            Submit your merch request today and let our team bring your vision to life.
-          </p>
-          <Dialog open={isRequestOpen} onOpenChange={setIsRequestOpen}>
-            <DialogTrigger asChild>
-              <Button className="btn-neon-magenta gap-2">
-                <Plus className="w-4 h-4" />
-                Request Custom Merch
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-[#1a1f2e] border border-[#2a2f3e]">
-              <DialogHeader>
-                <DialogTitle className="text-[#ff00cc]">Request Custom Merch</DialogTitle>
-                <DialogDescription className="text-[#7a7f8e]">
-                  Share your vision and we'll create something amazing for you.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-[#00eaff] text-sm font-medium">Merch Title</label>
-                  <Input
-                    placeholder="e.g., Custom Pixel Hoodie"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="bg-[#0b0e14] border-[#2a2f3e] text-[#00eaff] placeholder-[#7a7f8e]"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[#00eaff] text-sm font-medium">Description</label>
-                  <Textarea
-                    placeholder="Describe your merch idea in detail..."
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="bg-[#0b0e14] border-[#2a2f3e] text-[#00eaff] placeholder-[#7a7f8e]"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[#00eaff] text-sm font-medium">Design Notes (Optional)</label>
-                  <Textarea
-                    placeholder="Any specific colors, styles, or references?"
-                    value={formData.design}
-                    onChange={(e) => setFormData({ ...formData, design: e.target.value })}
-                    className="bg-[#0b0e14] border-[#2a2f3e] text-[#00eaff] placeholder-[#7a7f8e]"
-                  />
-                </div>
-
-                <Button
-                  className="w-full btn-neon-magenta"
-                  onClick={handleRequestMerch}
-                >
-                  Submit Request
+      {/* Requests Tab */}
+      {activeTab === "requests" && (
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-6">
+            <Dialog open={isRequestOpen} onOpenChange={setIsRequestOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold flex items-center gap-2">
+                  <Plus className="w-5 h-5" />
+                  Submit Custom Design
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="bg-[#0b0e14] border-2 border-[#ff00cc]">
+                <DialogHeader>
+                  <DialogTitle className="text-[#ff00cc]">Submit Custom Merch Design</DialogTitle>
+                  <DialogDescription className="text-gray-400">Tell us your idea and we'll create it for you</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-300 mb-2">Design Title</label>
+                    <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="e.g., Neon Dragon T-Shirt" className="bg-[#1a1f2e] border-[#ff00cc] text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-300 mb-2">Description</label>
+                    <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Describe your design idea..." className="bg-[#1a1f2e] border-[#ff00cc] text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-300 mb-2">Design Details</label>
+                    <Textarea value={formData.design} onChange={(e) => setFormData({ ...formData, design: e.target.value })} placeholder="Colors, style, placement, etc..." className="bg-[#1a1f2e] border-[#ff00cc] text-white" />
+                  </div>
+                  <Button onClick={() => { toast.success("Design submitted!"); setIsRequestOpen(false); }} className="w-full bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold">
+                    Submit Design
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+          <Card className="border-2 border-[#00eaff] bg-[#0b0e14]/80 p-6 text-center">
+            <p className="text-[#00eaff]">No custom design requests yet</p>
+          </Card>
         </div>
-      </main>
+      )}
+
+      {/* Orders Tab */}
+      {activeTab === "orders" && (
+        <div className="max-w-4xl mx-auto">
+          <Card className="border-2 border-[#00eaff] bg-[#0b0e14]/80 p-6 text-center">
+            <p className="text-[#00eaff]">No orders yet</p>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
