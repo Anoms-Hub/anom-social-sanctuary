@@ -147,6 +147,11 @@ export default function Home() {
           <div className="text-2xl font-bold neon-text-magenta">Anom Artsy</div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-[#7a7f8e]">Welcome, {user?.name}</span>
+            {user?.role === 'admin' && (
+              <Button onClick={() => navigate('/owner')} className="bg-[#a855f7] hover:bg-[#a855f7]/80 text-white font-bold">
+                Owner Panel
+              </Button>
+            )}
             <Button variant="outline" onClick={logout} className="text-[#ff00cc]">
               Sign Out
             </Button>

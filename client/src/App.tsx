@@ -18,6 +18,7 @@ import Merch from "./pages/Merch";
 import Admin from "./pages/Admin";
 import PublicProfile from "./pages/PublicProfile";
 import CollaborationStation from "./pages/CollaborationStation";
+import OwnerControlPanel from "./pages/OwnerControlPanel";
 import OwnerSettings from "./pages/OwnerSettings";
 import ColorCustomizer from "./components/ColorCustomizer";
 import YouTubeManager from "./pages/YouTubeManager";
@@ -49,7 +50,8 @@ const AppRoutes = () => {
       <Route path="/business-control" component={BusinessControlCenter} />
       <Route path="/profile/:userId" component={PublicProfile} />
       <Route path="/mission" component={MissionRally} />
-      <Route path={"404"} component={NotFound} />
+      <Route path="/owner" component={OwnerControlPanel} />
+      <Route path="/404" component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
