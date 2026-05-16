@@ -3,6 +3,8 @@ import { Zap, Users, Gamepad2, Heart, Sparkles, ShoppingBag } from "lucide-react
 import { getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
+import SignUpConnectors from "@/components/SignUpConnectors";
+import HomepageIntegration from "@/components/HomepageIntegration";
 
 export default function Home() {
   const { user, loading, isAuthenticated, logout } = useAuth();
@@ -46,12 +48,7 @@ export default function Home() {
                 </Button>
               </a>
             </div>
-            <div className="bg-[#1a1f2e] border border-[#2a2f3e] rounded-lg p-8" style={{boxShadow: '0 0 10px rgba(0, 234, 255, 0.5), 0 0 20px rgba(0, 234, 255, 0.3)'}}>
-              <div className="text-center">
-                <Sparkles className="w-16 h-16 mx-auto mb-4 text-[#ff00cc]" />
-                <p className="text-[#00eaff]">Welcome to your digital sanctuary</p>
-              </div>
-            </div>
+            <SignUpConnectors />
           </div>
         </section>
 
@@ -243,6 +240,11 @@ export default function Home() {
               Check back soon for community highlights, memes, and universe updates!
             </p>
           </div>
+        </div>
+
+        {/* Homepage Integration */}
+        <div className="mt-12">
+          <HomepageIntegration />
         </div>
       </main>
     </div>

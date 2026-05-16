@@ -1,6 +1,6 @@
 import { eq, and, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, userProfiles, decorationPackages, coinTransactions, achievements, userAchievements, lounges, loungeMembers, loungeMessages, kidsProgress, collaborationProjects, collaborationMembers, collaborationTasks, collaborationUpdates } from "../drizzle/schema";
+import { InsertUser, users, userProfiles, decorationPackages, coinTransactions, achievements, userAchievements, lounges, loungeMembers, loungeMessages, kidsProgress, collaborationProjects, collaborationMembers, collaborationTasks, collaborationUpdates, platformSettings, InsertPlatformSettings, auditLog } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -1312,6 +1312,106 @@ export async function getCollaborationUpdates(projectId: number) {
       .orderBy(desc(collaborationUpdates.createdAt));
   } catch (error) {
     console.error("[Database] Failed to get collaboration updates:", error);
+    throw error;
+  }
+}
+
+
+// ============================================================================
+// OWNER SETTINGS HELPERS
+// ============================================================================
+
+export async function getPlatformSettings() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get platform settings: database not available");
+    return null;
+  }
+
+  try {
+    const settings = await db.select().from(platformSettings).limit(1);
+    return settings[0] || null;
+  } catch (error) {
+    console.error("[Database] Failed to get platform settings:", error);
+    throw error;
+  }
+}
+
+export async function updatePlatformSettings(updates: Partial<InsertPlatformSettings>) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update platform settings: database not available");
+    return null;
+  }
+
+  try {
+    const existing = await db.select().from(platformSettings).limit(1);
+    
+    if (existing.length === 0) {
+      // Create default settings
+      await db.insert(platformSettings).values({
+        siteName: "Anom Artsy",
+        ...updates,
+      });
+    } else {
+      // Update existing
+      await db
+        .update(platformSettings)
+        .set(updates)
+        .where(eq(platformSettings.id, existing[0].id));
+    }
+
+    const updated = await db.select().from(platformSettings).limit(1);
+    return updated[0] || null;
+  } catch (error) {
+    console.error("[Database] Failed to update platform settings:", error);
+    throw error;
+  }
+}
+
+export async function logAuditAction(
+  adminId: number,
+  action: string,
+  targetType?: string,
+  targetId?: number,
+  details?: Record<string, any>
+) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot log audit action: database not available");
+    return null;
+  }
+
+  try {
+    return await db.insert(auditLog).values({
+      adminId,
+      action,
+      targetType: targetType || null,
+      targetId: targetId || null,
+      details: details || null,
+    });
+  } catch (error) {
+    console.error("[Database] Failed to log audit action:", error);
+    throw error;
+  }
+}
+
+export async function getAuditLog(limit = 100, offset = 0) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get audit log: database not available");
+    return [];
+  }
+
+  try {
+    return await db
+      .select()
+      .from(auditLog)
+      .orderBy(desc(auditLog.createdAt))
+      .limit(limit)
+      .offset(offset);
+  } catch (error) {
+    console.error("[Database] Failed to get audit log:", error);
     throw error;
   }
 }

@@ -362,6 +362,52 @@ export const appRouter = router({
       return await getAdminAnalytics();
     }),
   }),
+
+  ownerSettings: router({
+    getSettings: publicProcedure.query(async () => {
+      const { getPlatformSettings } = await import("./db");
+      return await getPlatformSettings();
+    }),
+
+    updateSettings: protectedProcedure
+      .input(
+        z.object({
+          siteName: z.string().optional(),
+          siteDescription: z.string().optional(),
+          primaryColor: z.string().optional(),
+          secondaryColor: z.string().optional(),
+          accentColor: z.string().optional(),
+          coinRewardPerAction: z.number().optional(),
+          coinRewardPerGame: z.number().optional(),
+          coinRewardPerTask: z.number().optional(),
+          xpPerLevel: z.number().optional(),
+          enableMerch: z.boolean().optional(),
+          enableLounges: z.boolean().optional(),
+          enableGames: z.boolean().optional(),
+          enableCollaboration: z.boolean().optional(),
+          enableKidsCorner: z.boolean().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+        const { updatePlatformSettings, logAuditAction } = await import("./db");
+        const result = await updatePlatformSettings(input);
+        await logAuditAction(ctx.user.id, "update_settings", "platform", 1, input);
+        return result;
+      }),
+
+    getAuditLog: protectedProcedure
+      .input(z.object({ limit: z.number().default(50), offset: z.number().default(0) }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+        }
+        const { getAuditLog } = await import("./db");
+        return await getAuditLog(input.limit, input.offset);
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

@@ -305,3 +305,61 @@ export const collaborationUpdates = mysqlTable("collaboration_updates", {
 
 export type CollaborationUpdate = typeof collaborationUpdates.$inferSelect;
 export type InsertCollaborationUpdate = typeof collaborationUpdates.$inferInsert;
+
+
+/**
+ * Platform Settings — owner/admin configuration for the entire platform
+ */
+export const platformSettings = mysqlTable("platform_settings", {
+  id: int("id").autoincrement().primaryKey(),
+  siteName: varchar("site_name", { length: 255 }).default("Anom Artsy"),
+  siteDescription: text("site_description"),
+  logoUrl: text("logo_url"),
+  faviconUrl: text("favicon_url"),
+  primaryColor: varchar("primary_color", { length: 7 }).default("#ff00cc"), // magenta
+  secondaryColor: varchar("secondary_color", { length: 7 }).default("#00eaff"), // cyan
+  accentColor: varchar("accent_color", { length: 7 }).default("#9d4edd"), // purple
+  
+  // Economy settings
+  coinRewardPerAction: int("coin_reward_per_action").default(10),
+  coinRewardPerGame: int("coin_reward_per_game").default(50),
+  coinRewardPerTask: int("coin_reward_per_task").default(10),
+  xpPerLevel: int("xp_per_level").default(100),
+  
+  // Feature flags
+  enableMerch: boolean("enable_merch").default(true),
+  enableLounges: boolean("enable_lounges").default(true),
+  enableGames: boolean("enable_games").default(true),
+  enableCollaboration: boolean("enable_collaboration").default(true),
+  enableKidsCorner: boolean("enable_kids_corner").default(true),
+  
+  // Payment settings
+  stripePublicKey: varchar("stripe_public_key", { length: 255 }),
+  stripeSecretKey: varchar("stripe_secret_key", { length: 255 }),
+  
+  // Moderation settings
+  enableContentModeration: boolean("enable_content_moderation").default(true),
+  autoModerationThreshold: int("auto_moderation_threshold").default(5), // flag after 5 reports
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PlatformSettings = typeof platformSettings.$inferSelect;
+export type InsertPlatformSettings = typeof platformSettings.$inferInsert;
+
+/**
+ * Audit Log — track all admin actions and changes
+ */
+export const auditLog = mysqlTable("audit_log", {
+  id: int("id").autoincrement().primaryKey(),
+  adminId: int("admin_id").notNull(),
+  action: varchar("action", { length: 100 }).notNull(), // "update_settings", "ban_user", "approve_merch", etc.
+  targetType: varchar("target_type", { length: 50 }), // "user", "merch_request", "collaboration_project", etc.
+  targetId: int("target_id"),
+  details: json("details").$type<Record<string, any>>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type AuditLog = typeof auditLog.$inferSelect;
+export type InsertAuditLog = typeof auditLog.$inferInsert;

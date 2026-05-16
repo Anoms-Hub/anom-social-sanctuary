@@ -17,6 +17,7 @@ import Merch from "./pages/Merch";
 import Admin from "./pages/Admin";
 import PublicProfile from "./pages/PublicProfile";
 import CollaborationStation from "./pages/CollaborationStation";
+import OwnerSettings from "./pages/OwnerSettings";
 
 const AppRoutes = () => {
   // make sure to consider if you need authentication for certain routes
@@ -35,6 +36,7 @@ const AppRoutes = () => {
       <Route path={"/merch"} component={Merch} />
       <Route path="/admin" component={Admin} />
       <Route path="/collaboration" component={CollaborationStation} />
+      <Route path="/owner-settings" component={OwnerSettings} />
       <Route path="/profile/:userId" component={PublicProfile} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

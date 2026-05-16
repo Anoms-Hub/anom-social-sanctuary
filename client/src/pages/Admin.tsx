@@ -95,7 +95,7 @@ export default function Admin() {
             </Button>
             <h1 className="text-2xl font-bold neon-text-magenta">Admin Dashboard</h1>
           </div>
-          <Button variant="outline" className="text-[#ff00cc] border-[#2a2f3e] gap-2">
+          <Button variant="outline" className="text-[#ff00cc] border-[#2a2f3e] gap-2" onClick={() => navigate("/owner-settings")}>
             <Settings className="w-4 h-4" />
             Settings
           </Button>
