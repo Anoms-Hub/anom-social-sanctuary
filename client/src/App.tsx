@@ -31,7 +31,7 @@ const AppRoutes = () => {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/ "} component={Home} />
+      <Route path={"/"} component={Home} />
       <Route path={"/"} component={Home} />
       <Route path={"/profile"} component={Profile} />
       <Route path={"/wallet"} component={Wallet} />

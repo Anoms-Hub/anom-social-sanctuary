@@ -55,6 +55,16 @@ export const appRouter = router({
           decorationPackageIds: input.packageIds,
         });
       }),
+    updateProfile: protectedProcedure
+      .input(z.object({ name: z.string().optional(), bio: z.string().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        return await updateUserProfile(ctx.user.id, { bio: input.bio });
+      }),
+    updateNameColor: protectedProcedure
+      .input(z.object({ nameColor: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        return await updateUserProfile(ctx.user.id, { nameColor: input.nameColor });
+      }),
   }),
 
   decorations: router({
