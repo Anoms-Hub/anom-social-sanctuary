@@ -9,6 +9,8 @@ import { useState } from "react";
 import React from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
+import ProfilePhotoManager from "@/components/ProfilePhotoManager";
+import IdentitySyncCard from "@/components/IdentitySyncCard";
 
 const THEME_OPTIONS = [
   { id: "magenta", name: "Neon Magenta", color: "#ff00cc", preview: "🌸" },
@@ -361,8 +363,18 @@ export default function Profile() {
                 </div>
               )}
 
+              {/* Photo Manager */}
+              <div className="mt-8 pt-8 border-t border-[#2a2f3e]">
+                <ProfilePhotoManager />
+              </div>
+
+              {/* Identity Sync */}
+              <div className="mt-8">
+                <IdentitySyncCard />
+              </div>
+
               {/* Danger Zone */}
-                  <div className="mt-8 pt-8 border-t border-[#2a2f3e]">
+              <div className="mt-8 pt-8 border-t border-[#2a2f3e]">
                 <h4 className="text-lg font-bold text-[#00eaff] mb-4">Account Security</h4>
                 <p className="text-[#7a7f8e] text-sm mb-4">Your account is secured with Manus OAuth. To change your password, please visit your Manus account settings.</p>
                 <Button

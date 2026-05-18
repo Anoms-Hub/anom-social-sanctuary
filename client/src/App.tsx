@@ -28,6 +28,9 @@ import ChatWidget from "./components/ChatWidget";
 import MissionRally from "./pages/MissionRally";
 import MissionHub from "./pages/MissionHub";
 import MusicLibrary from "./pages/MusicLibrary";
+import AnomsCorner from "./pages/AnomsCorner";
+import PixelProfile from "./pages/PixelProfile";
+import DotProfile from "./pages/DotProfile";
 
 const AppRoutes = () => {
   // make sure to consider if you need authentication for certain routes
@@ -41,6 +44,9 @@ const AppRoutes = () => {
       <Route path={"/lounges"} component={Lounges} />
       <Route path={"/lounges/:loungeId"} component={LoungeDetail} />
       <Route path={"/kids-corner"} component={KidsCorner} />
+      <Route path={"/anoms-corner"} component={AnomsCorner} />
+      <Route path={"/characters/pixel"} component={PixelProfile} />
+      <Route path={"/characters/dot"} component={DotProfile} />
       <Route path={"/feed"} component={SocialFeed} />
       <Route path={"/games"} component={Games} />
       <Route path={"/merch"} component={Merch} />

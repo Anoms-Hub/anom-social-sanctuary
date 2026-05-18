@@ -621,3 +621,129 @@
 - [ ] Test feature access control
 - [ ] Test tier benefits display
 - [ ] Verify Stripe integration
+
+
+## NEW PHASE: Anom's Corner - Pixel & Dot Series
+
+### Character Design & Consistency
+- [ ] Define Pixel & Dot visual identity (neon colors, shapes, animations)
+- [ ] Create character design guide for consistency
+- [ ] Document graphic properties (color palette, line weight, glow effects)
+- [ ] Create character profile cards for Pixel & Dot
+- [ ] Design character badges/icons for the platform
+- [ ] Establish animation style guidelines
+- [ ] Create character backstory/lore
+- [ ] Design character expressions and poses
+
+### Video Integration
+- [ ] Extract all video IDs from Anom Originals channel
+- [ ] Create video database with metadata
+- [ ] Wire "Pixel & Dot's New Adventure" as main episode
+- [ ] Add v4 scene videos (1-5) as supporting content
+- [ ] Add mood meme videos to collection
+- [ ] Implement video playback with character overlay
+- [ ] Add episode descriptions with character context
+- [ ] Create episode series tracking
+
+### Anom's Corner Page
+- [ ] Design Anom's Corner landing page
+- [ ] Create character introduction section
+- [ ] Build episode gallery/grid view
+- [ ] Implement video player with character branding
+- [ ] Add episode navigation and series tracking
+- [ ] Create character interaction elements
+- [ ] Build episode recommendation system
+- [ ] Add social sharing for episodes
+
+### Character Profile System
+- [ ] Create Pixel profile page
+- [ ] Create Dot profile page
+- [ ] Display character stats/abilities
+- [ ] Show character journey/progression
+- [ ] Add character interaction history
+- [ ] Create character achievement system
+- [ ] Build character fan art gallery
+- [ ] Add character merchandise links
+
+### Visual Consistency
+- [ ] Apply neon cyberpunk theme to Anom's Corner
+- [ ] Use consistent color scheme (#ff00cc, #00eaff, #ffd700)
+- [ ] Implement glow effects for character elements
+- [ ] Create animated transitions between episodes
+- [ ] Design character-themed UI elements
+- [ ] Build character-branded buttons/CTAs
+- [ ] Create character loading screens
+- [ ] Design character-themed notifications
+
+### Integration & Navigation
+- [ ] Add Anom's Corner to main navigation
+- [ ] Create homepage feature for Anom's Corner
+- [ ] Link from Kids Corner to Anom's Corner
+- [ ] Add character references throughout platform
+- [ ] Create character easter eggs
+- [ ] Build character-themed lounges
+- [ ] Add character merchandise integration
+- [ ] Create character fan community section
+
+### Engagement Features
+- [ ] Build episode voting/rating system
+- [ ] Create character fan theories section
+- [ ] Add episode discussion/comments
+- [ ] Build character fan art submissions
+- [ ] Create character cosplay gallery
+- [ ] Add character merchandise store
+- [ ] Build character fan club membership
+- [ ] Create character meet & greet events
+
+### Testing & Quality
+- [ ] Test video playback across devices
+- [ ] Verify character consistency in all videos
+- [ ] Test character profile pages
+- [ ] Verify navigation and linking
+- [ ] Test social sharing functionality
+- [ ] Verify responsive design
+- [ ] Test character animation performance
+- [ ] Validate all video IDs and metadata
+
+
+## BUG FIX: Navigation Issues
+- [ ] Add back-to-home navigation in cart/merch pages
+- [ ] Add back-to-home navigation in all detail pages
+- [ ] Ensure all pages have escape routes to home
+- [ ] Add breadcrumb navigation for better UX
+
+
+## CRITICAL BUG: Settings Not Saving
+- [ ] Theme color settings not persisting
+- [ ] Profile settings not saving to database
+- [ ] Membership tier settings not updating
+- [ ] Music preferences not persisting
+- [ ] Debug localStorage implementation
+- [ ] Debug tRPC mutation handlers
+- [ ] Verify database writes are working
+
+
+## CRITICAL BUG: Lounge Settings Not Working
+- [ ] Lounge customization settings not persisting
+- [ ] Lounge background image upload failing
+- [ ] Lounge music selection not saving
+- [ ] Lounge member permissions not updating
+- [ ] Lounge theme colors not applying
+- [ ] Debug lounge update procedures
+- [ ] Verify lounge database schema
+
+
+## PRIORITY: Profile Settings Persistence & Photo Upload
+- [x] Fix localStorage persistence for theme colors - DONE: profileSettings.ts service
+- [x] Fix localStorage persistence for profile settings - DONE: loadProfileSettings/saveProfileSettings
+- [x] Implement photo upload with automatic set options - DONE: ProfilePhotoManager component
+- [x] Create profile image set option - DONE: updatePhotoSets with isProfileImage
+- [x] Create background image set option - DONE: updatePhotoSets with isBackgroundImage
+- [x] Create default build option for photos - DONE: updatePhotoSets with isDefault
+- [x] Add photo library/gallery to profile - DONE: ProfilePhotoManager with grid display
+- [x] Make profile photos shareable on-site - DONE: generateShareableProfileUrl
+- [x] Make profile photos shareable off-site (social media) - DONE: IdentitySyncCard with social sharing
+- [x] Create identity sync system for members - DONE: createIdentitySyncCode/applyIdentitySyncCode
+- [x] Add identity sync sharing links - DONE: IdentitySyncCard with copy/share buttons
+- [x] Implement profile identity verification - DONE: Identity sync code validation
+- [x] Create member identity card for sharing - DONE: IdentitySyncCard component

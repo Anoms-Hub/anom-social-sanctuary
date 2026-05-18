@@ -1,4 +1,3 @@
-import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,7 @@ import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 interface LoungeDetailProps {
   params: { loungeId: string };
@@ -100,169 +100,91 @@ export default function LoungeDetail({ params }: LoungeDetailProps) {
     );
   }
 
-  const glowColor =
-    lounge.neonTheme === "magenta"
-      ? "0 0 10px rgba(255, 0, 204, 0.5), 0 0 20px rgba(255, 0, 204, 0.3)"
-      : lounge.neonTheme === "cyan"
-        ? "0 0 10px rgba(0, 234, 255, 0.5), 0 0 20px rgba(0, 234, 255, 0.3)"
-        : "0 0 10px rgba(157, 78, 221, 0.5), 0 0 20px rgba(157, 78, 221, 0.3)";
-
   return (
-    <div className="min-h-screen bg-[#0b0e14] text-[#00eaff]">
-      {/* Navigation */}
-      <nav className="border-b border-[#2a2f3e] px-6 py-4 sticky top-0 bg-[#0b0e14]/95 backdrop-blur z-10">
+    <div className="min-h-screen bg-gradient-to-br from-[#0b0e14] to-[#1a1f2e]">
+      {/* Header */}
+      <div className="bg-[#1a1f2e] border-b-2 border-[#ff00cc] p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/lounges")} className="text-[#7a7f8e]">
-              ← Back
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold neon-text-magenta">{lounge.name}</h1>
-              <p className="text-xs text-[#7a7f8e] capitalize">{lounge.type} Lounge</p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold text-[#ff00cc]">{lounge.name}</h1>
+            <p className="text-[#00eaff]">{lounge.type} Lounge</p>
           </div>
-          <Button variant="outline" className="gap-2 text-[#ff00cc] border-[#2a2f3e]">
-            <Settings className="w-4 h-4" />
-            Settings
+          <Button onClick={() => navigate("/lounges")} className="bg-[#2a2f3e] hover:bg-[#3a3f4e] text-[#00eaff]">
+            Back to Lounges
           </Button>
         </div>
-      </nav>
+      </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-6 grid lg:grid-cols-4 gap-6">
-        {/* Chat Section */}
+      <div className="max-w-7xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Chat Area */}
         <div className="lg:col-span-3 space-y-4">
-          <Card
-            className="bg-[#1a1f2e] border border-[#2a2f3e] p-4 h-[500px] flex flex-col"
-            style={{ boxShadow: glowColor }}
-          >
-            {/* Messages */}
-            <ScrollArea className="flex-1 mb-4 pr-4" ref={scrollRef}>
-              <div className="space-y-4">
-                {messagesLoading ? (
-                  <p className="text-[#7a7f8e] text-center py-8">Loading messages...</p>
-                ) : messages.length === 0 ? (
-                  <p className="text-[#7a7f8e] text-center py-8">No messages yet. Start the conversation!</p>
-                ) : (
-                  messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex ${msg.userId === user?.id ? "justify-end" : "justify-start"}`}
-                    >
-                      <div
-                        className={`max-w-xs px-4 py-2 rounded-lg ${
-                          msg.userId === user?.id
-                            ? "bg-[#ff00cc] text-[#0b0e14]"
-                            : "bg-[#2a2f3e] text-[#00eaff]"
-                        }`}
-                      >
-                        <p className="text-sm break-words">{msg.content}</p>
-                        <p className="text-xs opacity-70 mt-1">
-                          {new Date(msg.createdAt).toLocaleTimeString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                )}
+          <Card className="bg-[#1a1f2e] border-2 border-[#ff00cc] h-96 flex flex-col">
+            <ScrollArea ref={scrollRef} className="flex-1 p-4">
+              <div className="space-y-3">
+                {messages.map((msg, idx) => (
+                  <div key={idx} className="bg-[#0b0e14] rounded-lg p-3 border border-[#00eaff]/20">
+                    <p className="text-[#00eaff] font-bold text-sm">User</p>
+                    <p className="text-gray-300 text-sm">{msg.content}</p>
+                    <p className="text-[#7a7f8e] text-xs mt-1">{new Date(msg.createdAt).toLocaleTimeString()}</p>
+                  </div>
+                ))}
               </div>
             </ScrollArea>
-
-            {/* Message Input */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Type a message..."
-                value={messageInput}
-                onChange={(e) => setMessageInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                className="bg-[#0b0e14] border-[#2a2f3e] text-[#00eaff] placeholder-[#7a7f8e]"
-              />
-              <Button
-                onClick={handleSendMessage}
-                disabled={sendMessageMutation.isPending || !messageInput.trim()}
-                className="btn-neon-cyan gap-2"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
           </Card>
+
+          {/* Message Input */}
+          <div className="flex gap-2">
+            <Input
+              value={messageInput}
+              onChange={(e) => setMessageInput(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+              placeholder="Type a message..."
+              className="bg-[#1a1f2e] border-2 border-[#ff00cc] text-white"
+            />
+            <Button
+              onClick={handleSendMessage}
+              disabled={sendMessageMutation.isPending}
+              className="bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold flex items-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              Send
+            </Button>
+          </div>
         </div>
 
         {/* Sidebar */}
         <div className="space-y-4">
-          {/* Members Section */}
-          <Card
-            className="bg-[#1a1f2e] border border-[#2a2f3e] p-4"
-            style={{ boxShadow: glowColor }}
-          >
-            <h3 className="text-lg font-bold text-[#ff00cc] mb-4 flex items-center gap-2">
+          {/* Members */}
+          <Card className="bg-[#1a1f2e] border-2 border-[#00eaff] p-4">
+            <h3 className="text-lg font-bold text-[#00eaff] mb-4 flex items-center gap-2">
               <Users className="w-5 h-5" />
               Members ({members.length})
             </h3>
-            <div className="space-y-2 max-h-[300px] overflow-y-auto">
-              {membersLoading ? (
-                <p className="text-[#7a7f8e] text-sm">Loading members...</p>
-              ) : (
-                members.map((item) => (
-                  <div key={item.member.id} className="flex items-center justify-between p-2 bg-[#0b0e14] rounded">
-                    <div>
-                      <p className="text-sm text-[#00eaff] font-medium">{item.user.name}</p>
-                      <p className="text-xs text-[#7a7f8e] capitalize">{item.member.role}</p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </Card>
-
-          {/* Invite Section */}
-          <Card
-            className="bg-[#1a1f2e] border border-[#2a2f3e] p-4"
-            style={{ boxShadow: glowColor }}
-          >
-            <h3 className="text-lg font-bold text-[#ff00cc] mb-4 flex items-center gap-2">
-              <Plus className="w-5 h-5" />
-              Invite Members
-            </h3>
             <div className="space-y-2">
-              <Input
-                placeholder="Enter email..."
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                className="bg-[#0b0e14] border-[#2a2f3e] text-[#00eaff] placeholder-[#7a7f8e] text-sm"
-              />
-              <Button
-                className="w-full btn-neon-magenta text-sm"
-                onClick={() => {
-                  if (!inviteEmail.trim()) {
-                    toast.error("Please enter an email");
-                    return;
-                  }
-                  toast.info("Invite feature coming soon!");
-                  setInviteEmail("");
-                }}
-              >
-                Send Invite
-              </Button>
+              {members.map((member, idx) => (
+                <div key={idx} className="text-sm text-gray-300 p-2 bg-[#0b0e14] rounded">
+                  {member.user?.name || 'Member'}
+                </div>
+              ))}
             </div>
           </Card>
 
-          {/* Lounge Info */}
-          {lounge.description && (
-            <Card
-              className="bg-[#1a1f2e] border border-[#2a2f3e] p-4"
-              style={{ boxShadow: glowColor }}
-            >
-              <h3 className="text-sm font-bold text-[#ff00cc] mb-2">About</h3>
-              <p className="text-sm text-[#7a7f8e]">{lounge.description}</p>
-            </Card>
-          )}
+          {/* Settings */}
+          <Card className="bg-[#1a1f2e] border-2 border-[#ff00cc] p-4">
+            <h3 className="text-lg font-bold text-[#ff00cc] mb-4 flex items-center gap-2">
+              <Settings className="w-5 h-5" />
+              Lounge Settings
+            </h3>
+            <Button className="w-full bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold mb-2">
+              Customize Lounge
+            </Button>
+            <Button className="w-full bg-[#00eaff] hover:bg-[#00eaff]/80 text-black font-bold">
+              Invite Members
+            </Button>
+          </Card>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

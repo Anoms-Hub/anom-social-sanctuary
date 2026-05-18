@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ImageUploader } from "./ImageUploader";
-import { DecorationShowcase } from "./DecorationShowcase";
+import ImageUploader from "./ImageUploader";
+import DecorationShowcase from "./DecorationShowcase";
 import {
   Camera,
   Image as ImageIcon,
@@ -32,8 +32,7 @@ export default function ProfileCustomizer({
   const [profileLayout, setProfileLayout] = useState<"compact" | "full" | "showcase">("full");
   const [isPublic, setIsPublic] = useState(true);
   const [showImageUploader, setShowImageUploader] = useState<"profile" | "background" | null>(null);
-
-  const { data: profile } = trpc.profile.getProfile.useQuery({ userId });
+  const { data: profile } = trpc.profile.getMe.useQuery();
   const updateProfile = trpc.profile.updateProfile.useMutation({
     onSuccess: () => {
       toast.success("Profile updated!");
@@ -50,8 +49,6 @@ export default function ProfileCustomizer({
     try {
       updateProfile.mutate({
         bio,
-        profileLayout,
-        isPublic,
       });
     } catch (error) {
       toast.error("Error saving profile");
@@ -102,7 +99,7 @@ export default function ProfileCustomizer({
                   <p className="font-bold text-[#00eaff] mb-3">Profile Picture</p>
                   {showImageUploader === "profile" ? (
                     <ImageUploader
-                      onImageSelect={(file) => {
+                      onImageSelect={(file: File) => {
                         setProfilePictureFile(file);
                         setShowImageUploader(null);
                       }}
@@ -126,7 +123,7 @@ export default function ProfileCustomizer({
                   <p className="font-bold text-[#00eaff] mb-3">Background Image</p>
                   {showImageUploader === "background" ? (
                     <ImageUploader
-                      onImageSelect={(file) => {
+                      onImageSelect={(file: File) => {
                         setBackgroundImageFile(file);
                         setShowImageUploader(null);
                       }}
@@ -220,7 +217,7 @@ export default function ProfileCustomizer({
             <TabsContent value="decorations" className="space-y-4 mt-4">
               {profile?.decorationPackageIds && profile.decorationPackageIds.length > 0 ? (
                 <DecorationShowcase
-                  decorations={profile.decorationPackageIds.map((id) => ({
+                  decorations={profile.decorationPackageIds.map((id: number) => ({
                     id,
                     name: `Decoration ${id}`,
                     category: "badge" as const,
