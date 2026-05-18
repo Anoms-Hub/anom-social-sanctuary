@@ -1496,3 +1496,158 @@ export async function getVipBenefitsLog(userId: number, limit = 10) {
     .orderBy(desc(vipBenefitsLog.usedAt))
     .limit(limit);
 }
+
+
+// ============================================
+// MEMBERSHIP & TIPPING HELPERS
+// ============================================
+
+export async function createTip(
+  userId: number,
+  amount: number,
+  message?: string,
+  tipType: "one_time" | "recurring" = "one_time"
+) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create tip: database not available");
+    return undefined;
+  }
+
+  try {
+    const { tips } = await import("../drizzle/schema");
+    const result = await db.insert(tips).values({
+      userId,
+      amount: amount.toString(),
+      message,
+      tipType,
+      status: "pending",
+    });
+
+    return { success: true, message: "Tip created" };
+  } catch (error) {
+    console.error("[Database] Failed to create tip:", error);
+    throw error;
+  }
+}
+
+export async function getUserTips(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user tips: database not available");
+    return [];
+  }
+
+  try {
+    const { tips } = await import("../drizzle/schema");
+    return await db
+      .select()
+      .from(tips)
+      .where(eq(tips.userId, userId))
+      .orderBy((t) => t.createdAt);
+  } catch (error) {
+    console.error("[Database] Failed to get user tips:", error);
+    throw error;
+  }
+}
+
+export async function getTipLeaderboard(limit: number = 10) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get tip leaderboard: database not available");
+    return [];
+  }
+
+  try {
+    const { tips } = await import("../drizzle/schema");
+    return await db
+      .select()
+      .from(tips)
+      .where(eq(tips.status, "completed"))
+      .orderBy((t) => t.amount)
+      .limit(limit);
+  } catch (error) {
+    console.error("[Database] Failed to get tip leaderboard:", error);
+    throw error;
+  }
+}
+
+export async function getTotalTips() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get total tips: database not available");
+    return "0";
+  }
+
+  try {
+    const { tips } = await import("../drizzle/schema");
+    const result = await db
+      .select()
+      .from(tips)
+      .where(eq(tips.status, "completed"));
+
+    const total = result.reduce((sum, tip) => {
+      return sum + parseFloat(tip.amount?.toString() || "0");
+    }, 0);
+
+    return total.toString();
+  } catch (error) {
+    console.error("[Database] Failed to get total tips:", error);
+    throw error;
+  }
+}
+
+export async function createTierPurchase(
+  userId: number,
+  tier: "basic" | "vip" | "super_vip",
+  duration: number = 30
+) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create tier purchase: database not available");
+    return undefined;
+  }
+
+  try {
+    const { tierPurchases } = await import("../drizzle/schema");
+    const { getTierDefinition } = await import("./membershipTiers");
+
+    const tierDef = getTierDefinition(tier);
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + duration);
+
+    const result = await db.insert(tierPurchases).values({
+      userId,
+      tier,
+      amount: tierDef.monthlyPrice.toString(),
+      duration,
+      expiresAt,
+      status: "pending",
+    });
+
+    return { success: true, message: "Tier purchase created" };
+  } catch (error) {
+    console.error("[Database] Failed to create tier purchase:", error);
+    throw error;
+  }
+}
+
+export async function getUserTierPurchases(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get tier purchases: database not available");
+    return [];
+  }
+
+  try {
+    const { tierPurchases } = await import("../drizzle/schema");
+    return await db
+      .select()
+      .from(tierPurchases)
+      .where(eq(tierPurchases.userId, userId))
+      .orderBy((t) => t.createdAt);
+  } catch (error) {
+    console.error("[Database] Failed to get tier purchases:", error);
+    throw error;
+  }
+}

@@ -50,6 +50,13 @@
       "when": 1778890891357,
       "tag": "0006_groovy_jackal",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1779068794325,
+      "tag": "0007_clammy_colleen_wing",
+      "breakpoints": true
     }
   ]
 }

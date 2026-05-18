@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE `user_profiles` ADD `membership_tier` enum('basic','vip','super_vip') DEFAULT 'basic';\nALTER TABLE `user_profiles` ADD `tier_upgraded_at` timestamp;\nALTER TABLE `user_profiles` ADD `tier_expires_at` timestamp;\nALTER TABLE `user_profiles` ADD `coin_multiplier` decimal(3,1) DEFAULT '1.0';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3kTtUt5HsAKctQC.root --database bXVJ5ftTJhReGSfgaNzdpf --execute ALTER TABLE `user_profiles` ADD `membership_tier` enum('basic','vip','super_vip') DEFAULT 'basic';\nALTER TABLE `user_profiles` ADD `tier_upgraded_at` timestamp;\nALTER TABLE `user_profiles` ADD `tier_expires_at` timestamp;\nALTER TABLE `user_profiles` ADD `coin_multiplier` decimal(3,1) DEFAULT '1.0';",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'bxvj5fttjhregsfganzdpf.user_profiles' doesn't exist"
+  ]
+}

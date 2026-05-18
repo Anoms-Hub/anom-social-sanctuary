@@ -1,7 +1,9 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Play, Pause, Volume2, Music, SkipForward, SkipBack } from "lucide-react";
+import { Play, Pause, Volume2, Music, SkipForward, SkipBack, Share2 } from "lucide-react";
+import ShareModal from "./ShareModal";
+import { trpc } from "@/lib/trpc";
 
 interface Track {
   id: string;
@@ -10,6 +12,7 @@ interface Track {
   duration: number;
   url: string;
   mood: string;
+  genre: string;
   license: string;
 }
 
@@ -23,9 +26,21 @@ export default function MusicPlayer({ tracks, onTrackChange, compact = false }: 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [volume, setVolume] = useState(70);
+  const [showShareModal, setShowShareModal] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const currentTrack = tracks[currentTrackIndex];
+  const { data: shareData } = trpc.sharing.generateMusicShareUrls.useQuery(
+    {
+      trackId: currentTrack?.id || "",
+      title: currentTrack?.title || "",
+      artist: currentTrack?.artist || "",
+      mood: currentTrack?.mood || "",
+      genre: currentTrack?.genre || "",
+      license: currentTrack?.license || "",
+    },
+    { enabled: !!currentTrack }
+  );
 
   const handlePlayPause = () => {
     if (audioRef.current) {
@@ -89,7 +104,25 @@ export default function MusicPlayer({ tracks, onTrackChange, compact = false }: 
           <Button size="sm" variant="ghost" onClick={handleNextTrack} className="text-[#7a7f8e]">
             <SkipForward className="w-4 h-4" />
           </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setShowShareModal(true)}
+            className="text-[#7a7f8e] hover:text-[#ff00cc]"
+          >
+            <Share2 className="w-4 h-4" />
+          </Button>
         </div>
+        {shareData && (
+          <ShareModal
+            isOpen={showShareModal}
+            onClose={() => setShowShareModal(false)}
+            title={currentTrack.title}
+            description={`by ${currentTrack.artist} - ${currentTrack.mood} ${currentTrack.genre}`}
+            shareUrls={shareData.urls}
+            shareUrl={shareData.card.shareUrl}
+          />
+        )}
       </div>
     );
   }
@@ -151,6 +184,17 @@ export default function MusicPlayer({ tracks, onTrackChange, compact = false }: 
         <span className="text-sm text-[#7a7f8e] w-8 text-right">{volume}%</span>
       </div>
 
+      {/* Share Button */}
+      <div className="flex gap-2">
+        <Button
+          onClick={() => setShowShareModal(true)}
+          className="flex-1 bg-[#b000ff] hover:bg-[#b000ff]/80 text-white font-bold"
+        >
+          <Share2 className="w-4 h-4 mr-2" />
+          Share This Track
+        </Button>
+      </div>
+
       {/* Track Info */}
       <div className="bg-[#0b0e14] rounded-lg p-4 border border-[#2a2f3e]">
         <div className="grid grid-cols-2 gap-4 text-sm">
@@ -198,6 +242,18 @@ export default function MusicPlayer({ tracks, onTrackChange, compact = false }: 
           ))}
         </div>
       </div>
+
+      {/* Share Modal */}
+      {shareData && (
+        <ShareModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          title={currentTrack.title}
+          description={`by ${currentTrack.artist} - ${currentTrack.mood} ${currentTrack.genre}`}
+          shareUrls={shareData.urls}
+          shareUrl={shareData.card.shareUrl}
+        />
+      )}
     </Card>
   );
 }

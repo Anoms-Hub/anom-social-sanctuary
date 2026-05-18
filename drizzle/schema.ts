@@ -33,6 +33,10 @@ export const userProfiles = mysqlTable("user_profiles", {
   level: int("level").default(1),
   xp: int("xp").default(0),
   anomCoinBalance: decimal("anom_coin_balance", { precision: 10, scale: 2 }).default("0"),
+  membershipTier: mysqlEnum("membership_tier", ["basic", "vip", "super_vip"]).default("basic"),
+  tierUpgradedAt: timestamp("tier_upgraded_at"),
+  tierExpiresAt: timestamp("tier_expires_at"),
+  coinMultiplier: decimal("coin_multiplier", { precision: 3, scale: 1 }).default("1.0"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 });
@@ -518,3 +522,47 @@ export const chatNotifications = mysqlTable("chat_notifications", {
 
 export type ChatNotification = typeof chatNotifications.$inferSelect;
 export type InsertChatNotification = typeof chatNotifications.$inferInsert;
+
+
+/**
+ * Tips — tracks donations and tips from members to support the platform
+ */
+export const tips = mysqlTable("tips", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("user_id").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("USD"),
+  tipType: mysqlEnum("tip_type", ["one_time", "recurring"]).default("one_time"),
+  message: text("message"),
+  stripePaymentIntentId: varchar("stripe_payment_intent_id", { length: 100 }),
+  status: mysqlEnum("status", ["pending", "completed", "failed", "refunded"]).default("pending"),
+  completedAt: timestamp("completed_at"),
+  refundedAt: timestamp("refunded_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Tip = typeof tips.$inferSelect;
+export type InsertTip = typeof tips.$inferInsert;
+
+/**
+ * Membership Tier Purchases — tracks tier upgrade purchases
+ */
+export const tierPurchases = mysqlTable("tier_purchases", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("user_id").notNull(),
+  tier: mysqlEnum("tier", ["basic", "vip", "super_vip"]).notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("USD"),
+  duration: int("duration").default(30), // days
+  stripePaymentIntentId: varchar("stripe_payment_intent_id", { length: 100 }),
+  status: mysqlEnum("status", ["pending", "completed", "failed", "refunded"]).default("pending"),
+  expiresAt: timestamp("expires_at"),
+  completedAt: timestamp("completed_at"),
+  refundedAt: timestamp("refunded_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TierPurchase = typeof tierPurchases.$inferSelect;
+export type InsertTierPurchase = typeof tierPurchases.$inferInsert;
