@@ -143,6 +143,9 @@ export async function updateUserProfile(userId: number, updates: Partial<typeof 
   }
 
   try {
+    // Ensure profile exists before updating
+    await getOrCreateUserProfile(userId);
+    
     await db.update(userProfiles).set(updates).where(eq(userProfiles.userId, userId));
     const result = await db.select().from(userProfiles).where(eq(userProfiles.userId, userId)).limit(1);
     return result.length > 0 ? result[0] : undefined;
