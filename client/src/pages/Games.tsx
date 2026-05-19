@@ -1,4 +1,3 @@
-import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Gamepad2, Trophy, Zap, Star, X } from "lucide-react";
@@ -6,6 +5,7 @@ import { useLocation } from "wouter";
 import { useState } from "react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 // Trivia Game Component
 function TriviaGame({ onClose, onComplete }: { onClose: () => void; onComplete: (score: number) => void }) {
@@ -296,12 +296,14 @@ export default function Games() {
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const [gameScores, setGameScores] = useState<Record<string, number>>({});
 
-  // TODO: Add games.saveScore mutation to backend
-  // const saveGameScore = trpc.games.saveScore.useMutation({
-  //   onSuccess: () => {
-  //     toast.success("Score saved! 🎉");
-  //   },
-  // });
+  const saveGameScore = trpc.games.saveScore.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+    },
+    onError: () => {
+      toast.error("Failed to save game score");
+    },
+  });
 
   const games = [
     {
@@ -336,8 +338,8 @@ export default function Games() {
   const handleGameComplete = (gameId: string, score: number) => {
     setGameScores({ ...gameScores, [gameId]: score });
     setActiveGame(null);
-    // TODO: Uncomment when backend mutation is ready
-    // saveGameScore.mutate({ gameId, score });
+    // Save the game score to the backend and award coins
+    saveGameScore.mutate({ gameId, score });
   };
 
   if (loading) {
