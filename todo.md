@@ -34,6 +34,7 @@
 - [ ] Implement shared goals and milestone tracking within lounges
 - [x] Add customizable neon themes for each lounge type
 - [x] Build lounge member management and invitations
+- [x] Implement lounge customization dialog (name, description, theme updates)
 
 ## Phase 6: Kids Corner with Pixel & Dot & Off-Grid Adventure
 - [x] Integrate Pixel & Dot episode videos (Episodes 1-6)
