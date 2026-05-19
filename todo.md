@@ -747,3 +747,168 @@
 - [x] Add identity sync sharing links - DONE: IdentitySyncCard with copy/share buttons
 - [x] Implement profile identity verification - DONE: Identity sync code validation
 - [x] Create member identity card for sharing - DONE: IdentitySyncCard component
+
+
+## NEW PHASE: GIF/Emote/Badge Cosmetics System
+
+### Database Schema
+- [ ] Create cosmetics table (id, name, type, image_url, price_anom_coins, rarity, category)
+- [ ] Create member_inventory table (id, member_id, cosmetic_id, acquired_at, is_equipped)
+- [ ] Create cosmetic_purchases table (id, member_id, cosmetic_id, purchase_date, cost)
+- [ ] Add cosmetic_type enum (badge, emote, gif, emoji)
+- [ ] Add rarity levels (common, rare, epic, legendary)
+
+### GIPHY Integration
+- [ ] Integrate GIPHY API for GIF search and display
+- [ ] Create GIF library page showing @anomoriginals247 channel GIFs
+- [ ] Build GIF preview component with metadata
+- [ ] Add GIF search functionality
+- [ ] Create GIF-to-cosmetic conversion system
+- [ ] Display GIFs in chat/profiles/lounges
+
+### Anom Coin Shop
+- [ ] Create shop page with cosmetics catalog
+- [ ] Build cosmetics grid with filtering (type, rarity, price)
+- [ ] Add cosmetic details modal with preview
+- [ ] Implement purchase flow with Anom Coin deduction
+- [ ] Add purchase confirmation and success notification
+- [ ] Create shop search and sorting options
+- [ ] Display member's Anom Coin balance in shop
+
+### Member Inventory
+- [ ] Create inventory page showing owned cosmetics
+- [ ] Build inventory grid with equipped/unequipped states
+- [ ] Add equip/unequip functionality
+- [ ] Create inventory filtering by type
+- [ ] Display cosmetic usage stats (how many members own it)
+- [ ] Add cosmetic trading/gifting system (optional)
+- [ ] Show acquisition date and purchase price
+
+### Cosmetics Display
+- [ ] Display badges on member profiles
+- [ ] Show emotes in chat/messages
+- [ ] Display GIFs in profile backgrounds
+- [ ] Add emoji support to profiles
+- [ ] Create cosmetic showcase section on profiles
+- [ ] Add cosmetic animations and effects
+- [ ] Display equipped cosmetics in lounges
+
+### Shop Features
+- [ ] Add cosmetic recommendations based on tier
+- [ ] Create limited-time cosmetics (seasonal)
+- [ ] Build cosmetic bundle deals
+- [ ] Add cosmetic preview in profile
+- [ ] Create "New" and "Featured" cosmetics sections
+- [ ] Add cosmetic description and lore
+- [ ] Display cosmetic rarity colors and badges
+
+### Anom Coin Economy
+- [ ] Set cosmetic prices in Anom Coins
+- [ ] Create price tiers based on rarity
+- [ ] Implement dynamic pricing for limited cosmetics
+- [ ] Add Anom Coin earning opportunities
+- [ ] Create shop discounts for VIP/Super VIP members
+- [ ] Add Anom Coin purchase option (optional)
+- [ ] Track Anom Coin spending analytics
+
+### Testing
+- [ ] Write tests for cosmetics shop procedures
+- [ ] Test inventory management
+- [ ] Test purchase flow and coin deduction
+- [ ] Test GIPHY integration
+- [ ] Test cosmetic display on profiles
+- [ ] Test filtering and search
+- [ ] Test member inventory persistence
+
+
+## CRITICAL BUG: Game Coin Rewards Not Saving
+- [ ] Games not adding Anom Coins to member wallets
+- [ ] Game score procedures not updating user_profiles.anom_coin_balance
+- [ ] Coin reward calculation not applying membership tier multiplier
+- [ ] Game completion not persisting coin rewards to database
+- [ ] Wallet balance not reflecting game earnings
+
+
+## PHASE: Comprehensive Platform Audit & Fix
+
+### Page & Link Audit
+- [ ] Audit Home page - check all links and CTAs
+- [ ] Audit Profile page - check all tabs and functionality
+- [ ] Audit Dashboard page - check all widgets and data
+- [ ] Audit Lounges page - check creation and management
+- [ ] Audit Kids Corner - check video playback and progress
+- [ ] Audit Merch page - check cart and checkout
+- [ ] Audit Collaboration Station - check project creation
+- [ ] Audit Anom's Corner - check Pixel & Dot content
+- [ ] Audit Music Library - check search and playback
+- [ ] Audit Mission Hub - check donation flow
+- [ ] Audit Admin page - check all controls
+- [ ] Audit Settings page - check all options
+
+### Navigation Fixes
+- [ ] Fix broken navigation links throughout platform
+- [ ] Add back-to-home buttons on all pages
+- [ ] Fix navigation menu consistency
+- [ ] Add breadcrumb navigation where needed
+- [ ] Fix mobile navigation responsiveness
+- [ ] Add proper error pages (404, 500)
+- [ ] Fix page redirects after login/logout
+- [ ] Add loading states during navigation
+
+### Settings Persistence Fixes
+- [ ] Fix theme color settings not saving
+- [ ] Fix profile bio not saving
+- [ ] Fix name color settings not saving
+- [ ] Fix lounge settings not saving
+- [ ] Fix notification preferences not saving
+- [ ] Fix privacy settings not saving
+- [ ] Fix language/locale settings not saving
+- [ ] Add localStorage fallback for all settings
+- [ ] Add database persistence for all settings
+- [ ] Add settings sync across tabs/windows
+
+### Admin Dashboard Expansion
+- [ ] Add user management section
+- [ ] Add content moderation dashboard
+- [ ] Add member activity monitoring
+- [ ] Add platform analytics dashboard
+- [ ] Add coin economy monitoring
+- [ ] Add membership tier analytics
+- [ ] Add donation tracking
+- [ ] Add report management system
+- [ ] Add feature toggle controls
+- [ ] Add email notification system
+
+### Settings Page Expansion
+- [ ] Add account security settings
+- [ ] Add privacy controls
+- [ ] Add notification preferences
+- [ ] Add email preferences
+- [ ] Add data export/download
+- [ ] Add account deletion option
+- [ ] Add two-factor authentication
+- [ ] Add session management
+- [ ] Add device management
+- [ ] Add blocked users list
+
+### Platform Monitoring
+- [ ] Add real-time user activity dashboard
+- [ ] Add platform health monitoring
+- [ ] Add error tracking and logging
+- [ ] Add performance metrics
+- [ ] Add user engagement analytics
+- [ ] Add content popularity metrics
+- [ ] Add coin economy tracking
+- [ ] Add revenue monitoring
+- [ ] Add member retention metrics
+- [ ] Add churn analysis
+
+### Testing & Verification
+- [ ] Test all page links and navigation
+- [ ] Test settings persistence
+- [ ] Test admin functionality
+- [ ] Test mobile responsiveness
+- [ ] Test error handling
+- [ ] Test loading states
+- [ ] Test data persistence
+- [ ] Test cross-browser compatibility
