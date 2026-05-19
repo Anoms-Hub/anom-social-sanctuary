@@ -822,11 +822,11 @@
 
 
 ## CRITICAL BUG: Game Coin Rewards Not Saving
-- [ ] Games not adding Anom Coins to member wallets
-- [ ] Game score procedures not updating user_profiles.anom_coin_balance
-- [ ] Coin reward calculation not applying membership tier multiplier
-- [ ] Game completion not persisting coin rewards to database
-- [ ] Wallet balance not reflecting game earnings
+- [x] Games not adding Anom Coins to member wallets - FIXED: games.procedures.ts saveScore
+- [x] Game score procedures not updating user_profiles.anom_coin_balance - FIXED: addCoinTransaction
+- [x] Coin reward calculation not applying membership tier multiplier - FIXED: Dynamic calculation
+- [x] Game completion not persisting coin rewards to database - FIXED: saveScore mutation
+- [x] Wallet balance not reflecting game earnings - FIXED: Coins awarded on game completion
 
 
 ## PHASE: Comprehensive Platform Audit & Fix

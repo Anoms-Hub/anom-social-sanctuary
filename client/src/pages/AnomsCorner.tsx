@@ -9,7 +9,8 @@ import { trpc } from "@/lib/trpc";
 interface Episode {
   id: string;
   title: string;
-  videoId: string;
+  videoId?: string;
+  storageUrl?: string;
   duration: string;
   views: number;
   postedAt: string;
@@ -20,13 +21,22 @@ interface Episode {
 const episodes: Episode[] = [
   {
     id: "1",
+    title: "Pixel & Dot's Full Story | Anom's Corner",
+    storageUrl: "/manus-storage/v8_pixel_dot_full_story_final_45228357.mp4",
+    duration: "Full Story",
+    views: 1,
+    postedAt: "Today",
+    description: "The complete Pixel & Dot story. Join these two characters on their epic journey through a neon-powered universe filled with mystery, wonder, and unforgettable moments. This is the definitive Anom's Corner experience.",
+    featured: true,
+  },
+  {
+    id: "2",
     title: "Pixel & Dot's New Adventure | Anom's Corner",
     videoId: "0pBrQUqU0ig",
     duration: "1:50",
     views: 18,
     postedAt: "1 month ago",
     description: "Join Pixel and Dot on their first adventure in Anom's Corner! Discover their neon-powered world and the mysteries that await.",
-    featured: true,
   },
 ];
 
@@ -35,7 +45,9 @@ export default function AnomsCorner() {
   const [liked, setLiked] = useState(false);
 
   const handleShare = () => {
-    const url = `https://www.youtube.com/watch?v=${selectedEpisode.videoId}`;
+    const url = selectedEpisode.storageUrl 
+      ? `${window.location.origin}${selectedEpisode.storageUrl}`
+      : `https://www.youtube.com/watch?v=${selectedEpisode.videoId}`;
     navigator.clipboard.writeText(url);
     toast.success("Episode link copied to clipboard!");
   };
@@ -110,122 +122,129 @@ export default function AnomsCorner() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Video Player */}
           <div className="lg:col-span-2">
-            <Card className="bg-[#1a1f2e] border border-[#2a2f3e] overflow-hidden">
-              {/* Video Embed */}
-              <div className="relative w-full bg-black" style={{ paddingBottom: "56.25%" }}>
-                <iframe
-                  className="absolute top-0 left-0 w-full h-full"
-                  src={`https://www.youtube.com/embed/${selectedEpisode.videoId}`}
-                  title={selectedEpisode.title}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+            <Card className="bg-[#1a1f2e] border border-[#2a2f3e] overflow-hidden p-6">
+              {/* Featured Video Player */}
+              <div className="mb-6">
+                <div className="relative w-full bg-black rounded-lg overflow-hidden border border-[#2a2f3e]">
+                  {selectedEpisode.storageUrl ? (
+                    <video
+                      className="w-full h-auto"
+                      controls
+                      autoPlay
+                      style={{ maxHeight: "600px" }}
+                    >
+                      <source src={selectedEpisode.storageUrl} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <div className="relative w-full bg-black rounded-lg overflow-hidden" style={{ paddingBottom: "56.25%" }}>
+                      <iframe
+                        className="absolute inset-0 w-full h-full"
+                        src={`https://www.youtube.com/embed/${selectedEpisode.videoId}`}
+                        title={selectedEpisode.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Episode Info */}
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h2 className="text-2xl font-bold text-white mb-2">{selectedEpisode.title}</h2>
-                    <div className="flex items-center gap-4 text-sm text-[#7a7f8e]">
-                      <span>{selectedEpisode.views} views</span>
-                      <span>•</span>
-                      <span>{selectedEpisode.postedAt}</span>
-                    </div>
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-2">{selectedEpisode.title}</h2>
+                  <div className="flex items-center gap-4 text-sm text-[#7a7f8e]">
+                    <span>{selectedEpisode.views} views</span>
+                    <span>•</span>
+                    <span>{selectedEpisode.postedAt}</span>
                   </div>
-                  {selectedEpisode.featured && (
-                    <Badge className="bg-[#ff00cc] text-black font-bold">Featured</Badge>
-                  )}
                 </div>
+              </div>
 
-                <p className="text-[#7a7f8e] mb-6">{selectedEpisode.description}</p>
+              {/* Description */}
+              <p className="text-[#7a7f8e] mb-6 leading-relaxed">{selectedEpisode.description}</p>
 
-                {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <Button
-                    onClick={() => setLiked(!liked)}
-                    className={`flex-1 ${
-                      liked
-                        ? "bg-[#ff00cc] text-black hover:bg-[#ff00cc]/80"
-                        : "bg-[#2a2f3e] text-[#7a7f8e] hover:bg-[#3a3f4e]"
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 mr-2 ${liked ? "fill-current" : ""}`} />
-                    {liked ? "Liked" : "Like"}
-                  </Button>
-
-                  <Button
-                    onClick={handleShare}
-                    className="flex-1 bg-[#2a2f3e] text-[#7a7f8e] hover:bg-[#3a3f4e]"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share
-                  </Button>
-                </div>
+              {/* Action Buttons */}
+              <div className="flex gap-4">
+                <Button
+                  className="flex-1 btn-neon-magenta flex items-center justify-center gap-2"
+                  onClick={() => setLiked(!liked)}
+                >
+                  <Heart className={`w-5 h-5 ${liked ? "fill-current" : ""}`} />
+                  {liked ? "Liked" : "Like"}
+                </Button>
+                <Button
+                  className="flex-1 btn-neon-cyan flex items-center justify-center gap-2"
+                  onClick={handleShare}
+                >
+                  <Share2 className="w-5 h-5" />
+                  Share
+                </Button>
               </div>
             </Card>
           </div>
 
-          {/* Sidebar - Character Info & Episodes */}
-          <div className="space-y-6">
-            {/* Character Stats */}
+          {/* Sidebar - Episode List */}
+          <div>
             <Card className="bg-[#1a1f2e] border border-[#2a2f3e] p-6">
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <Zap className="w-5 h-5" style={{ color: "#00eaff" }} />
-                Series Stats
-              </h3>
-
+              <h3 className="text-xl font-bold text-white mb-4">Episodes</h3>
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-[#7a7f8e]">Episodes</span>
-                  <span className="font-bold text-white">1</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[#7a7f8e]">Total Views</span>
-                  <span className="font-bold text-white">18</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[#7a7f8e]">Characters</span>
-                  <span className="font-bold text-white">2</span>
-                </div>
-              </div>
-            </Card>
-
-            {/* Episodes List */}
-            <Card className="bg-[#1a1f2e] border border-[#2a2f3e] p-6">
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <Play className="w-5 h-5" style={{ color: "#ff00cc" }} />
-                Episodes
-              </h3>
-
-              <div className="space-y-2">
-                {episodes.map((ep) => (
+                {episodes.map((episode) => (
                   <button
-                    key={ep.id}
-                    onClick={() => setSelectedEpisode(ep)}
-                    className={`w-full text-left p-3 rounded-lg transition-colors ${
-                      selectedEpisode.id === ep.id
-                        ? "bg-[#ff00cc]/20 border border-[#ff00cc]"
-                        : "bg-[#0b0e14] border border-[#2a2f3e] hover:border-[#00eaff]"
+                    key={episode.id}
+                    onClick={() => setSelectedEpisode(episode)}
+                    className={`w-full text-left p-3 rounded-lg border transition-all ${
+                      selectedEpisode.id === episode.id
+                        ? "border-[#ff00cc] bg-[#ff00cc]/10"
+                        : "border-[#2a2f3e] bg-[#0b0e14] hover:border-[#ff00cc]"
                     }`}
                   >
-                    <p className="text-sm font-bold text-white truncate">{ep.title}</p>
-                    <p className="text-xs text-[#7a7f8e]">{ep.duration}</p>
+                    <p className="font-semibold text-white text-sm mb-1">{episode.title}</p>
+                    <p className="text-xs text-[#7a7f8e]">{episode.duration}</p>
                   </button>
                 ))}
               </div>
             </Card>
 
-            {/* Character Spotlight */}
-            <Card className="bg-gradient-to-br from-[#ff00cc]/10 to-[#00eaff]/10 border border-[#2a2f3e] p-6">
-              <h3 className="text-lg font-bold text-white mb-3">Meet the Characters</h3>
-              <p className="text-sm text-[#7a7f8e] mb-4">
-                Pixel & Dot are on a quest through digital landscapes, discovering hidden truths and creating moments of pure wonder.
-              </p>
-              <Button className="w-full bg-[#ff00cc] text-black hover:bg-[#ff00cc]/80 font-bold">
-                View Profiles
-              </Button>
+            {/* Series Stats */}
+            <Card className="bg-[#1a1f2e] border border-[#2a2f3e] p-6 mt-6">
+              <h3 className="text-lg font-bold text-white mb-4">Series Stats</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#7a7f8e] text-sm">Episodes</span>
+                  <span className="text-[#ff00cc] font-bold">{episodes.length}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#7a7f8e] text-sm">Total Views</span>
+                  <span className="text-[#00eaff] font-bold">{episodes.reduce((a, b) => a + b.views, 0)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#7a7f8e] text-sm">Featured</span>
+                  <Badge className="bg-[#ff00cc] text-white">New</Badge>
+                </div>
+              </div>
+            </Card>
+
+            {/* Character Links */}
+            <Card className="bg-[#1a1f2e] border border-[#2a2f3e] p-6 mt-6">
+              <h3 className="text-lg font-bold text-white mb-4">Meet the Characters</h3>
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start border-[#ff00cc] text-[#ff00cc] hover:bg-[#ff00cc]/10"
+                  onClick={() => window.location.href = "/characters/pixel"}
+                >
+                  <span style={{ color: "#ff00cc" }}>→</span> Pixel's Profile
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start border-[#00eaff] text-[#00eaff] hover:bg-[#00eaff]/10"
+                  onClick={() => window.location.href = "/characters/dot"}
+                >
+                  <span style={{ color: "#00eaff" }}>→</span> Dot's Profile
+                </Button>
+              </div>
             </Card>
           </div>
         </div>
