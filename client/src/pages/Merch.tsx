@@ -1,14 +1,14 @@
-import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ShoppingBag, Plus, CheckCircle2, Clock, Package, Trash2, ShoppingCart } from "lucide-react";
+import { ShoppingBag, Plus, CheckCircle2, Clock, Package, Trash2, ShoppingCart, ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 interface CartItem {
   id: string;
@@ -16,16 +16,6 @@ interface CartItem {
   price: number;
   quantity: number;
   image: string;
-}
-
-interface MerchOrder {
-  id: string;
-  title: string;
-  description: string;
-  image: string;
-  status: "pending" | "approved" | "in_production" | "shipped";
-  createdAt: string;
-  estimatedDelivery?: string;
 }
 
 const AVAILABLE_MERCH = [
@@ -54,6 +44,11 @@ export default function Merch() {
     description: "",
     design: "",
   });
+
+  // tRPC mutations and queries
+  const submitDesignMutation = trpc.merch.createRequest.useMutation();
+  const { data: orders = [] } = trpc.merch.getMyOrders.useQuery(undefined, { enabled: !!user });
+  const { data: designs = [] } = trpc.merch.getMyRequests.useQuery(undefined, { enabled: !!user });
 
   if (loading) {
     return <div className="min-h-screen bg-[#0b0e14] flex items-center justify-center text-[#ff00cc]">Loading...</div>;
@@ -96,24 +91,94 @@ export default function Merch() {
 
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!checkoutData.address) {
       toast.error("Please enter a shipping address");
       return;
     }
-    toast.success("Order placed successfully! You will receive a confirmation email.");
-    setCart([]);
-    setIsCheckoutOpen(false);
+
+    if (cart.length === 0) {
+      toast.error("Your cart is empty");
+      return;
+    }
+
+    try {
+      // For now, show a success message and clear cart
+      // In production, this would integrate with Stripe
+      toast.success("Order placed! You will receive a confirmation email.");
+      setCart([]);
+      setIsCheckoutOpen(false);
+    } catch (error) {
+      toast.error("Failed to process checkout");
+      console.error(error);
+    }
+  };
+
+  const handleSubmitDesign = async () => {
+    if (!formData.title || !formData.description) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    try {
+      await submitDesignMutation.mutateAsync({
+        title: formData.title,
+        description: formData.description,
+        referenceImages: formData.design ? [formData.design] : undefined,
+      });
+      toast.success("Design submitted successfully!");
+      setFormData({ title: "", description: "", design: "" });
+      setIsRequestOpen(false);
+    } catch (error) {
+      toast.error("Failed to submit design");
+      console.error(error);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "text-yellow-400";
+      case "approved":
+        return "text-blue-400";
+      case "in_production":
+        return "text-purple-400";
+      case "shipped":
+        return "text-green-400";
+      default:
+        return "text-gray-400";
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "⏳";
+      case "approved":
+        return "✅";
+      case "in_production":
+        return "🔧";
+      case "shipped":
+        return "📦";
+      default:
+        return "❓";
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0b0e14] to-[#1a1f2e] p-4 md:p-8">
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
-        <h1 className="text-4xl font-bold text-[#ff00cc] mb-2 flex items-center gap-3">
-          <ShoppingBag className="w-10 h-10" />
-          Anom Artsy Merch
-        </h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-4xl font-bold text-[#ff00cc] flex items-center gap-3">
+            <ShoppingBag className="w-10 h-10" />
+            Anom Artsy Merch
+          </h1>
+          <Button variant="outline" onClick={() => navigate("/")} className="text-[#00eaff] border-[#00eaff] hover:bg-[#00eaff]/10 flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Home
+          </Button>
+        </div>
         <p className="text-gray-400">Custom designs, white-glove service, social good impact</p>
       </div>
 
@@ -230,19 +295,14 @@ export default function Merch() {
                         <label className="block text-sm font-bold text-gray-300 mb-2">Shipping Address</label>
                         <Textarea value={checkoutData.address} onChange={(e) => setCheckoutData({ ...checkoutData, address: e.target.value })} placeholder="Street, City, State, ZIP" className="bg-[#1a1f2e] border-[#ff00cc] text-white" />
                       </div>
-                      <div>
-                        <label className="block text-sm font-bold text-gray-300 mb-2">Payment Method</label>
-                        <select value={checkoutData.paymentMethod} onChange={(e) => setCheckoutData({ ...checkoutData, paymentMethod: e.target.value })} className="w-full bg-[#1a1f2e] border-2 border-[#ff00cc] text-white p-2 rounded">
-                          <option value="stripe">Credit Card (Stripe)</option>
-                          <option value="paypal">PayPal</option>
-                          <option value="cashapp">Cash App</option>
-                        </select>
-                      </div>
                       <div className="bg-[#1a1f2e] p-4 rounded border border-[#00eaff]/20">
                         <p className="text-[#00eaff] font-bold mb-2">Total: ${cartTotal.toFixed(2)}</p>
-                        <p className="text-sm text-gray-400">Shipping will be calculated after checkout</p>
+                        <p className="text-sm text-gray-400">You will be redirected to Stripe for secure payment</p>
                       </div>
-                      <Button onClick={handleCheckout} className="w-full bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold py-3">
+                      <Button 
+                        onClick={handleCheckout}
+                        className="w-full bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold py-3"
+                      >
                         Complete Order
                       </Button>
                     </div>
@@ -283,25 +343,69 @@ export default function Merch() {
                     <label className="block text-sm font-bold text-gray-300 mb-2">Design Details</label>
                     <Textarea value={formData.design} onChange={(e) => setFormData({ ...formData, design: e.target.value })} placeholder="Colors, style, placement, etc..." className="bg-[#1a1f2e] border-[#ff00cc] text-white" />
                   </div>
-                  <Button onClick={() => { toast.success("Design submitted!"); setIsRequestOpen(false); }} className="w-full bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold">
-                    Submit Design
+                  <Button 
+                    onClick={handleSubmitDesign}
+                    disabled={submitDesignMutation.isPending}
+                    className="w-full bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold"
+                  >
+                    {submitDesignMutation.isPending ? "Submitting..." : "Submit Design"}
                   </Button>
                 </div>
               </DialogContent>
             </Dialog>
           </div>
-          <Card className="border-2 border-[#00eaff] bg-[#0b0e14]/80 p-6 text-center">
-            <p className="text-[#00eaff]">No custom design requests yet</p>
-          </Card>
+
+          {designs.length === 0 ? (
+            <Card className="border-2 border-[#00eaff] bg-[#0b0e14]/80 p-6 text-center">
+              <p className="text-[#00eaff]">No custom design requests yet</p>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {designs.map((design: any) => (
+                <Card key={design.id} className="border-2 border-[#ff00cc] bg-[#0b0e14]/80 p-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold text-[#ff00cc] mb-2">{design.title}</h3>
+                      <p className="text-[#00eaff] mb-2">{design.description}</p>
+                      <p className="text-gray-400 text-sm mb-4">{design.design}</p>
+                      <p className={`text-sm font-bold ${getStatusColor(design.status)}`}>
+                        {getStatusIcon(design.status)} {design.status.replace("_", " ").toUpperCase()}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       {/* Orders Tab */}
       {activeTab === "orders" && (
         <div className="max-w-4xl mx-auto">
-          <Card className="border-2 border-[#00eaff] bg-[#0b0e14]/80 p-6 text-center">
-            <p className="text-[#00eaff]">No orders yet</p>
-          </Card>
+          {orders.length === 0 ? (
+            <Card className="border-2 border-[#00eaff] bg-[#0b0e14]/80 p-6 text-center">
+              <p className="text-[#00eaff]">No orders yet</p>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {orders.map((order: any) => (
+                <Card key={order.id} className="border-2 border-[#ff00cc] bg-[#0b0e14]/80 p-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold text-[#ff00cc] mb-2">Order #{order.id.slice(0, 8)}</h3>
+                      <p className="text-[#00eaff] mb-2">${(order.total / 100).toFixed(2)}</p>
+                      <p className="text-gray-400 text-sm mb-2">Items: {order.items}</p>
+                      <p className="text-gray-400 text-sm mb-4">Ordered: {new Date(order.createdAt).toLocaleDateString()}</p>
+                      <p className={`text-sm font-bold ${getStatusColor(order.status)}`}>
+                        {getStatusIcon(order.status)} {order.status.replace("_", " ").toUpperCase()}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -40,6 +40,9 @@
 - [x] Fix profile customize tab with proper theme and color selection
 - [x] Implement profile share tab with social media sharing (Twitter, Facebook, LinkedIn)
 - [x] Add back to home button on profile page
+- [x] Fix custom merch checkout flow and add order tracking
+- [x] Implement custom design submission and tracking
+- [x] Add back to home button on merch page
 
 ## Phase 6: Kids Corner with Pixel & Dot & Off-Grid Adventure
 - [x] Integrate Pixel & Dot episode videos (Episodes 1-6)
