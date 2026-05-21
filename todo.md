@@ -59,8 +59,10 @@
 - [ ] Create universe update announcements section
 - [ ] Implement feed filtering and sorting (recent, trending, by category)
 - [x] Add like/comment/share functionality for feed posts
-- [x] Add Tater & Clifford reels section to social feed
+- [x] Add Tater & Clifford reels to social feed
 - [x] Implement video reel playback with thumbnails and view counts
+- [x] Add social media sharing functionality to feed posts (Twitter, Facebook, LinkedIn)
+- [x] Implement homepage background customization (upload images or preset gradients)
 
 ## Phase 8: Mini-Games Integration (Trivia, Memory, Mood Matcher, Snack Vault Rush)
 - [x] Embed AO Trivia game with score tracking

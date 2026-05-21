@@ -144,7 +144,31 @@ export default function SocialFeed() {
   };
 
   const handleShare = (postId: string) => {
-    toast.success("Post shared! 🎉");
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+
+    const shareUrl = `${window.location.origin}/feed/post/${postId}`;
+    const shareText = `${post.content} - Check out this post on Anom Artsy!`;
+
+    // Social media share options
+    const shareOptions = [
+      {
+        name: 'Twitter',
+        url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}&hashtags=AnonArtsy,SocialGood`,
+      },
+      {
+        name: 'Facebook',
+        url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+      },
+      {
+        name: 'LinkedIn',
+        url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+      },
+    ];
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(shareUrl);
+    toast.success('Link copied! Share on social media or paste anywhere.');
   };
 
   const handlePlayReel = (reelId: string) => {

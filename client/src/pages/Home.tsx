@@ -1,14 +1,23 @@
 import { Button } from "@/components/ui/button";
-import { Zap, Users, Gamepad2, Heart, Sparkles, ShoppingBag } from "lucide-react";
+import { Zap, Users, Gamepad2, Heart, Sparkles, ShoppingBag, Upload, Palette } from "lucide-react";
 import { getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useState } from "react";
+import { toast } from "sonner";
 import SignUpConnectors from "@/components/SignUpConnectors";
 import HomepageIntegration from "@/components/HomepageIntegration";
 
 export default function Home() {
   const { user, loading, isAuthenticated, logout } = useAuth();
   const [, navigate] = useLocation();
+  const [backgroundUrl, setBackgroundUrl] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('homepageBackground') || '';
+    }
+    return '';
+  });
+  const [showBgMenu, setShowBgMenu] = useState(false);
 
   if (loading) {
     return (
@@ -167,15 +176,105 @@ export default function Home() {
     );
   }
 
+  const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const url = event.target?.result as string;
+        setBackgroundUrl(url);
+        localStorage.setItem('homepageBackground', url);
+        toast.success('Background updated!');
+        setShowBgMenu(false);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePresetBackground = (preset: string) => {
+    const presets: Record<string, string> = {
+      gradient1: 'linear-gradient(135deg, rgba(255, 0, 204, 0.1) 0%, rgba(0, 234, 255, 0.1) 100%)',
+      gradient2: 'linear-gradient(135deg, rgba(157, 78, 221, 0.1) 0%, rgba(255, 0, 204, 0.1) 100%)',
+      gradient3: 'linear-gradient(135deg, rgba(0, 234, 255, 0.1) 0%, rgba(0, 255, 136, 0.1) 100%)',
+    };
+    setBackgroundUrl(presets[preset] || '');
+    localStorage.setItem('homepageBackground', presets[preset] || '');
+    toast.success('Background preset applied!');
+    setShowBgMenu(false);
+  };
+
   // Authenticated Dashboard
   return (
-    <div className="min-h-screen bg-[#0b0e14] text-[#00eaff]">
+    <div 
+      className="min-h-screen bg-[#0b0e14] text-[#00eaff]"
+      style={{
+        backgroundImage: backgroundUrl.startsWith('linear-gradient') ? backgroundUrl : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+      }}
+    >
+      {backgroundUrl && !backgroundUrl.startsWith('linear-gradient') && (
+        <div 
+          className="fixed inset-0 pointer-events-none z-0"
+          style={{
+            backgroundImage: `url(${backgroundUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.15,
+          }}
+        />
+      )}
       {/* Navigation */}
       <nav className="border-b border-[#2a2f3e] px-6 py-4 sticky top-0 bg-[#0b0e14]/95 backdrop-blur">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="text-2xl font-bold neon-text-magenta">Anom Artsy</div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-[#7a7f8e]">Welcome, {user?.name}</span>
+            <div className="relative">
+              <Button 
+                onClick={() => setShowBgMenu(!showBgMenu)}
+                className="bg-[#00eaff]/20 hover:bg-[#00eaff]/30 text-[#00eaff] border border-[#00eaff]"
+                size="sm"
+              >
+                <Palette className="w-4 h-4 mr-2" />
+                Background
+              </Button>
+              {showBgMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-[#1a1f2e] border border-[#2a2f3e] rounded-lg p-4 shadow-lg z-50">
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => handlePresetBackground('gradient1')}
+                      className="w-full text-left px-3 py-2 rounded hover:bg-[#2a2f3e] text-[#00eaff] text-sm"
+                    >
+                      Magenta-Cyan
+                    </button>
+                    <button
+                      onClick={() => handlePresetBackground('gradient2')}
+                      className="w-full text-left px-3 py-2 rounded hover:bg-[#2a2f3e] text-[#00eaff] text-sm"
+                    >
+                      Purple-Magenta
+                    </button>
+                    <button
+                      onClick={() => handlePresetBackground('gradient3')}
+                      className="w-full text-left px-3 py-2 rounded hover:bg-[#2a2f3e] text-[#00eaff] text-sm"
+                    >
+                      Cyan-Green
+                    </button>
+                    <label className="w-full text-left px-3 py-2 rounded hover:bg-[#2a2f3e] text-[#00eaff] text-sm cursor-pointer flex items-center">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload Image
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBackgroundUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
             {user?.role === 'admin' && (
               <Button onClick={() => navigate('/owner')} className="bg-[#a855f7] hover:bg-[#a855f7]/80 text-white font-bold">
                 Owner Panel
