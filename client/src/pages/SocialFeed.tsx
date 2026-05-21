@@ -1,10 +1,10 @@
-import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Heart, MessageCircle, Share2, Zap } from "lucide-react";
+import { Heart, MessageCircle, Share2, Zap, Play, Volume2, ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 interface FeedPost {
   id: string;
@@ -16,6 +16,16 @@ interface FeedPost {
   likes: number;
   comments: number;
   liked: boolean;
+}
+
+interface Reel {
+  id: string;
+  title: string;
+  creator: string;
+  description: string;
+  thumbnail: string;
+  duration: string;
+  views: number;
 }
 
 export default function SocialFeed() {
@@ -76,6 +86,45 @@ export default function SocialFeed() {
     },
   ]);
 
+  const reels: Reel[] = [
+    {
+      id: "reel-1",
+      title: "Tater & Clifford: The Quest Begins",
+      creator: "Anom Studios",
+      description: "Join Tater and Clifford on their first adventure in the Anom Universe!",
+      thumbnail: "🎬",
+      duration: "3:45",
+      views: 12543,
+    },
+    {
+      id: "reel-2",
+      title: "Clifford's Comedy Hour",
+      creator: "Anom Studios",
+      description: "Laugh along with Clifford's hilarious takes on digital life!",
+      thumbnail: "😂",
+      duration: "2:30",
+      views: 8234,
+    },
+    {
+      id: "reel-3",
+      title: "Tater's Cooking Show",
+      creator: "Anom Studios",
+      description: "Learn to cook digital dishes with Tater!",
+      thumbnail: "🍳",
+      duration: "4:15",
+      views: 5678,
+    },
+    {
+      id: "reel-4",
+      title: "Tater & Clifford: Best Friends Forever",
+      creator: "Anom Studios",
+      description: "A heartwarming episode about friendship and loyalty.",
+      thumbnail: "💜",
+      duration: "5:20",
+      views: 15234,
+    },
+  ];
+
   const handleLike = (postId: string) => {
     setPosts(
       posts.map((post) =>
@@ -96,6 +145,10 @@ export default function SocialFeed() {
 
   const handleShare = (postId: string) => {
     toast.success("Post shared! 🎉");
+  };
+
+  const handlePlayReel = (reelId: string) => {
+    toast.success("Playing reel! 🎥");
   };
 
   if (loading) {
@@ -123,10 +176,11 @@ export default function SocialFeed() {
     <div className="min-h-screen bg-[#0b0e14] text-[#00eaff]">
       {/* Navigation */}
       <nav className="border-b border-[#2a2f3e] px-6 py-4 sticky top-0 bg-[#0b0e14]/95 backdrop-blur z-10">
-        <div className="max-w-2xl mx-auto flex justify-between items-center">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/")} className="text-[#7a7f8e]">
-              ← Back
+            <Button variant="ghost" onClick={() => navigate("/")} className="text-[#7a7f8e] flex items-center gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Back
             </Button>
             <h1 className="text-2xl font-bold neon-text-cyan">Live from the Universe</h1>
           </div>
@@ -134,7 +188,62 @@ export default function SocialFeed() {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-6 py-8">
+      <main className="max-w-4xl mx-auto px-6 py-8">
+        {/* Reels Section */}
+        <div className="mb-12">
+          <h2 className="text-3xl font-bold text-[#ff00cc] mb-6 flex items-center gap-2">
+            <Play className="w-6 h-6" />
+            Featured Reels: Tater & Clifford Series
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {reels.map((reel) => (
+              <Card
+                key={reel.id}
+                className="bg-[#1a1f2e] border border-[#2a2f3e] overflow-hidden hover:border-[#ff00cc] transition-all cursor-pointer group"
+                style={{
+                  boxShadow: "0 0 10px rgba(255, 0, 204, 0.3), 0 0 20px rgba(255, 0, 204, 0.1)",
+                }}
+                onClick={() => handlePlayReel(reel.id)}
+              >
+                {/* Reel Thumbnail */}
+                <div className="relative bg-gradient-to-br from-[#1a1f2e] to-[#0b0e14] aspect-video flex items-center justify-center overflow-hidden">
+                  <div className="text-8xl group-hover:scale-110 transition-transform">{reel.thumbnail}</div>
+                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors flex items-center justify-center">
+                    <Play className="w-16 h-16 text-[#ff00cc] opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-xs text-[#00eaff] font-bold">
+                    {reel.duration}
+                  </div>
+                </div>
+
+                {/* Reel Info */}
+                <div className="p-4">
+                  <h3 className="font-bold text-[#ff00cc] mb-1 line-clamp-2">{reel.title}</h3>
+                  <p className="text-sm text-[#7a7f8e] mb-2">{reel.creator}</p>
+                  <p className="text-sm text-[#00eaff] line-clamp-2 mb-3">{reel.description}</p>
+                  <div className="flex items-center justify-between text-xs text-[#7a7f8e]">
+                    <span>👁️ {reel.views.toLocaleString()} views</span>
+                    <Button
+                      size="sm"
+                      className="bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePlayReel(reel.id);
+                      }}
+                    >
+                      <Play className="w-3 h-3 mr-1" />
+                      Play
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-[#2a2f3e] my-12"></div>
+
         {/* Create Post Section */}
         <Card
           className="bg-[#1a1f2e] border border-[#2a2f3e] p-6 mb-8"
@@ -163,6 +272,7 @@ export default function SocialFeed() {
 
         {/* Feed Posts */}
         <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-[#00eaff] mb-6">Community Posts</h2>
           {posts.map((post) => (
             <Card
               key={post.id}

@@ -59,6 +59,8 @@
 - [ ] Create universe update announcements section
 - [ ] Implement feed filtering and sorting (recent, trending, by category)
 - [x] Add like/comment/share functionality for feed posts
+- [x] Add Tater & Clifford reels section to social feed
+- [x] Implement video reel playback with thumbnails and view counts
 
 ## Phase 8: Mini-Games Integration (Trivia, Memory, Mood Matcher, Snack Vault Rush)
 - [x] Embed AO Trivia game with score tracking
@@ -82,10 +84,15 @@
 - [x] Build admin-only access control and role management
 - [x] Create merch order management interface
 - [ ] Build lounge purchase approval system
-- [ ] Implement user management (view levels, achievements, coins)
+- [x] Implement user management (view levels, achievements, coins)
 - [ ] Create notification inbox for owner (custom requests, new orders, system alerts)
 - [x] Build analytics dashboard (user growth, coin circulation, engagement metrics)
 - [ ] Add moderation tools for community content
+- [x] Fix owner panel with real-time stats and data fetching
+- [x] Implement community highlights and events management in owner panel
+- [ ] Implement real admin user-management queries backed by database (currently using mock data)
+- [ ] Extend owner users table to display user levels, achievements, and coin balances
+- [ ] Add backend/frontend tests for admin user management data retrieval
 
 ## Phase 12: Backend Integration & Testing
 - [x] Implement tRPC procedures for merch requests
