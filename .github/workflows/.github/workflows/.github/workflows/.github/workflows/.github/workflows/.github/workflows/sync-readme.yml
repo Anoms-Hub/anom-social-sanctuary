@@ -1,0 +1,28 @@
+name: Sync Docs & Badges
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "README.md"
+      - "docs/**"
+      - ".github/workflows/sync-readme.yml"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run docs sync script
+        run: |
+          if [ -f scripts/update_readme.mjs ]; then pnpm sync:readme; fi
+
+      - name: Commit changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "anoms-bot"
+            git config user.email "ops@anomsanctuary.local"
+            git commit -am "chore: auto-sync docs"
+            git push
+          fi
