@@ -1,0 +1,36 @@
+name: Validate Social Content
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "content/**"
+      - "templates/**"
+      - "scripts/**"
+      - ".github/workflows/validate-content.yml"
+  pull_request:
+    paths:
+      - "content/**"
+      - "templates/**"
+      - "scripts/**"
+      - ".github/workflows/validate-content.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate content
+        run: pnpm validate:content --if-present
