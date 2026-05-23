@@ -1,0 +1,38 @@
+name: Build & Export Social Packs
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: "dev"
+  push:
+    tags:
+      - "release-*"
+
+jobs:
+  build-export:
+    runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: ${{ github.event.inputs.environment || 'prod' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build export bundle
+        run: pnpm export:social --if-present -- --env=$ENVIRONMENT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: social-packs-${{ env.ENVIRONMENT }}
+          path: dist/social-packs/**
