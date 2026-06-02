@@ -1,0 +1,17 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `user_profiles` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`user_id` int NOT NULL,\n\t`bio` text,\n\t`avatar_url` text,\n\t`neon_theme` varchar(50) DEFAULT 'magenta',\n\t`name_color` varchar(7) DEFAULT '#ff00cc',\n\t`decoration_package_ids` json DEFAULT ('[]'),\n\t`level` int DEFAULT 1,\n\t`xp` int DEFAULT 0,\n\t`anom_coin_balance` decimal(10,2) DEFAULT '0',\n\t`membership_tier` enum('basic','vip','super_vip') DEFAULT 'basic',\n\t`tier_upgraded_at` timestamp,\n\t`tier_expires_at` timestamp,\n\t`coin_multiplier` decimal(3,1) DEFAULT '1.0',\n\t`created_at` timestamp NOT NULL DEFAULT (now()),\n\t`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `user_profiles_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `user_profiles_user_id_unique` UNIQUE(`user_id`)\n);\n\nINSERT IGNORE INTO `user_profiles` (user_id, bio, avatar_url, neon_theme, name_color, level, xp, anom_coin_balance, membership_tier, coin_multiplier, created_at, updated_at) \nVALUES (1, 'Welcome to Anom Artsy!', '', 'magenta', '#ff00cc', 1, 0, 0, 'basic', 1.0, NOW(), NOW());",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway06.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3kTtUt5HsAKctQC.root --database bXVJ5ftTJhReGSfgaNzdpf --execute CREATE TABLE IF NOT EXISTS `user_profiles` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`user_id` int NOT NULL,\n\t`bio` text,\n\t`avatar_url` text,\n\t`neon_theme` varchar(50) DEFAULT 'magenta',\n\t`name_color` varchar(7) DEFAULT '#ff00cc',\n\t`decoration_package_ids` json DEFAULT ('[]'),\n\t`level` int DEFAULT 1,\n\t`xp` int DEFAULT 0,\n\t`anom_coin_balance` decimal(10,2) DEFAULT '0',\n\t`membership_tier` enum('basic','vip','super_vip') DEFAULT 'basic',\n\t`tier_upgraded_at` timestamp,\n\t`tier_expires_at` timestamp,\n\t`coin_multiplier` decimal(3,1) DEFAULT '1.0',\n\t`created_at` timestamp NOT NULL DEFAULT (now()),\n\t`updated_at` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `user_profiles_id` PRIMARY KEY(`id`),\n\tCONSTRAINT `user_profiles_user_id_unique` UNIQUE(`user_id`)\n);\n\nINSERT IGNORE INTO `user_profiles` (user_id, bio, avatar_url, neon_theme, name_color, level, xp, anom_coin_balance, membership_tier, coin_multiplier, created_at, updated_at) \nVALUES (1, 'Welcome to Anom Artsy!', '', 'magenta', '#ff00cc', 1, 0, 0, 'basic', 1.0, NOW(), NOW());",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 8 column 45 near \"'[]'),",
+    "\t`level` int DEFAULT 1,",
+    "\t`xp` int DEFAULT 0,",
+    "\t`anom_coin_balance` decimal(10,2) DEFAULT '0',",
+    "\t`membership_tier` enum('basic','vip','super_vip') DEFAULT 'basic',",
+    "\t`tier_upgraded_at` timestamp,",
+    "\t`tier_expires_at` timestamp,",
+    "\t`coin_multiplier` decimal(3,1) DEFAULT '1.0',",
+    "\t`created_at` timestamp NOT NULL DEFAULT (now()),",
+    "\t`updated_at` timestamp NOT NULL DEFAULT"
+  ]
+}
