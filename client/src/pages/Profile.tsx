@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { User, Zap, Award, Palette, Settings, LogOut, Edit2, Save, Share2, Copy, Check } from "lucide-react";
+import { User, Zap, Award, Palette, Settings, LogOut, Edit2, Save, Share2, Copy, Check, AlertCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -39,8 +39,8 @@ export default function Profile() {
     bio: "",
   });
 
-  // Fetch user profile
-  const { data: profile, isLoading: profileLoading } = trpc.profile.getMe.useQuery(undefined, {
+  // Fetch user profile with error handling
+  const { data: profile, isLoading: profileLoading, error: profileError } = trpc.profile.getMe.useQuery(undefined, {
     enabled: !!user,
   });
 
@@ -63,6 +63,37 @@ export default function Profile() {
           <div className="text-4xl mb-4">⏳</div>
           <p>Loading your profile...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Show error state if profile fails to load
+  if (profileError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#0b0e14] to-[#1a1f2e] flex items-center justify-center p-4">
+        <Card className="border-2 border-[#ff00cc] bg-[#0b0e14]/80 p-8 max-w-md">
+          <div className="flex items-center gap-3 mb-4">
+            <AlertCircle className="w-6 h-6 text-[#ff00cc]" />
+            <h2 className="text-xl font-bold text-[#ff00cc]">Unable to Load Profile</h2>
+          </div>
+          <p className="text-[#7a7f8e] text-sm mb-6">
+            We're having trouble connecting to your profile data. This might be a temporary issue. Please try again later or contact support if the problem persists.
+          </p>
+          <div className="flex gap-3">
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="flex-1 bg-[#00eaff] hover:bg-[#00eaff]/80 text-black font-bold"
+            >
+              Retry
+            </Button>
+            <Button 
+              onClick={() => navigate("/")} 
+              className="flex-1 bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold"
+            >
+              Go Home
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
@@ -203,7 +234,7 @@ export default function Profile() {
 
             <Card className="bg-[#1a1f2e] border border-[#2a2f3e] p-6">
               <h3 className="text-xl font-bold text-[#ff00cc] mb-4">Bio</h3>
-              <p className="text-[#00eaff]">{profile?.bio || "No bio set yet"}</p>
+              <p className="text-[#7a7f8e]">{profile?.bio || "No bio yet. Add one in the Customize tab!"}</p>
             </Card>
           </div>
         )}
@@ -211,12 +242,8 @@ export default function Profile() {
         {/* Customize Tab */}
         {activeTab === "customize" && (
           <div className="space-y-6">
-            {/* Theme Selection */}
             <Card className="bg-[#1a1f2e] border border-[#2a2f3e] p-6">
-              <h3 className="text-xl font-bold text-[#ff00cc] mb-4 flex items-center gap-2">
-                <Palette className="w-5 h-5" /> Theme Color
-              </h3>
-              <p className="text-[#7a7f8e] text-sm mb-4">Choose your profile's neon theme</p>
+              <h3 className="text-xl font-bold text-[#ff00cc] mb-4">Neon Theme</h3>
               <div className="grid grid-cols-3 gap-4">
                 {THEME_OPTIONS.map((theme) => (
                   <button
@@ -225,20 +252,18 @@ export default function Profile() {
                     className={`p-4 rounded-lg border-2 transition-all ${
                       selectedTheme === theme.id
                         ? "border-[#ff00cc] bg-[#ff00cc]/20"
-                        : "border-[#2a2f3e] bg-[#0b0e14] hover:border-[#00eaff]"
+                        : "border-[#2a2f3e] hover:border-[#ff00cc]"
                     }`}
                   >
                     <div className="text-3xl mb-2">{theme.preview}</div>
-                    <p className="text-sm font-bold text-[#00eaff]">{theme.name}</p>
+                    <p className="text-sm text-[#7a7f8e]">{theme.name}</p>
                   </button>
                 ))}
               </div>
             </Card>
 
-            {/* Name Color Selection */}
             <Card className="bg-[#1a1f2e] border border-[#2a2f3e] p-6">
               <h3 className="text-xl font-bold text-[#ff00cc] mb-4">Name Color</h3>
-              <p className="text-[#7a7f8e] text-sm mb-4">Customize how your name appears</p>
               <div className="grid grid-cols-3 gap-4">
                 {NAME_COLORS.map((color) => (
                   <button
@@ -247,14 +272,14 @@ export default function Profile() {
                     className={`p-4 rounded-lg border-2 transition-all ${
                       selectedNameColor === color.id
                         ? "border-[#ff00cc] bg-[#ff00cc]/20"
-                        : "border-[#2a2f3e] bg-[#0b0e14] hover:border-[#00eaff]"
+                        : "border-[#2a2f3e] hover:border-[#ff00cc]"
                     }`}
                   >
-                    <div
-                      className="w-8 h-8 rounded-full mx-auto mb-2 border-2 border-[#2a2f3e]"
-                      style={{ backgroundColor: color.color }}
+                    <div 
+                      className="w-8 h-8 rounded-full mx-auto mb-2"
+                      style={{ backgroundColor: color.id }}
                     />
-                    <p className="text-sm font-bold text-[#00eaff]">{color.name}</p>
+                    <p className="text-sm text-[#7a7f8e]">{color.name}</p>
                   </button>
                 ))}
               </div>
@@ -265,7 +290,6 @@ export default function Profile() {
         {/* Settings Tab */}
         {activeTab === "settings" && (
           <div className="space-y-6">
-            {/* Bio Editor */}
             <Card className="bg-[#1a1f2e] border border-[#2a2f3e] p-6">
               <h3 className="text-xl font-bold text-[#ff00cc] mb-4">Edit Bio</h3>
               {isEditingProfile ? (
@@ -273,46 +297,25 @@ export default function Profile() {
                   <textarea
                     value={editData.bio}
                     onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
-                    className="w-full bg-[#0b0e14] border border-[#2a2f3e] text-[#00eaff] p-3 rounded-lg"
+                    className="w-full bg-[#0b0e14] border border-[#2a2f3e] rounded-lg p-3 text-[#00eaff] placeholder-[#7a7f8e] focus:border-[#ff00cc] focus:outline-none"
+                    placeholder="Tell us about yourself..."
                     rows={4}
-                    placeholder="Enter your bio..."
                   />
                   <div className="flex gap-2">
-                    <Button
-                      className="bg-[#00eaff] text-[#0b0e14] hover:bg-[#00eaff]/80"
-                      onClick={handleUpdateProfile}
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      Save
+                    <Button onClick={handleUpdateProfile} className="flex-1 bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold">
+                      Save Bio
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="text-[#ff00cc] border-[#2a2f3e]"
-                      onClick={() => setIsEditingProfile(false)}
-                    >
+                    <Button onClick={() => setIsEditingProfile(false)} variant="outline" className="flex-1 text-[#00eaff] border-[#00eaff]">
                       Cancel
                     </Button>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <p className="text-[#7a7f8e]">{editData.bio || "No bio set yet"}</p>
-                  <Button
-                    className="bg-[#ff00cc] text-[#0b0e14] hover:bg-[#ff00cc]/80"
-                    onClick={() => setIsEditingProfile(true)}
-                  >
-                    <Edit2 className="w-4 h-4 mr-2" />
-                    Edit Bio
-                  </Button>
-                </div>
+                <Button onClick={() => setIsEditingProfile(true)} className="w-full bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold">
+                  Edit Bio
+                </Button>
               )}
             </Card>
-
-            {/* Photo Manager */}
-            <ProfilePhotoManager />
-
-            {/* Identity Sync */}
-            <IdentitySyncCard />
           </div>
         )}
 
@@ -320,64 +323,38 @@ export default function Profile() {
         {activeTab === "share" && (
           <div className="space-y-6">
             <Card className="bg-[#1a1f2e] border border-[#2a2f3e] p-6">
-              <h3 className="text-xl font-bold text-[#ff00cc] mb-4 flex items-center gap-2">
-                <Share2 className="w-5 h-5" /> Share Your Profile
-              </h3>
-              <p className="text-[#7a7f8e] mb-6">Let others discover your Anom Artsy profile</p>
-
-              {/* Profile Link */}
-              <div className="mb-6">
-                <label className="text-[#00eaff] text-sm font-bold mb-2 block">Your Profile Link</label>
+              <h3 className="text-xl font-bold text-[#ff00cc] mb-4">Share Your Profile</h3>
+              <div className="space-y-4">
                 <div className="flex gap-2">
                   <Input
                     value={profileUrl}
                     readOnly
-                    className="bg-[#0b0e14] border-[#2a2f3e] text-[#00eaff]"
+                    className="bg-[#0b0e14] border border-[#2a2f3e] text-[#00eaff]"
                   />
                   <Button
                     onClick={handleCopyLink}
-                    className="bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold flex items-center gap-2"
+                    className="bg-[#00eaff] hover:bg-[#00eaff]/80 text-black font-bold"
                   >
                     {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    {copied ? "Copied!" : "Copy"}
                   </Button>
                 </div>
-              </div>
 
-              {/* Social Sharing */}
-              <div>
-                <label className="text-[#00eaff] text-sm font-bold mb-4 block">Share on Social Media</label>
                 <div className="grid grid-cols-3 gap-4">
-                  <Button
-                    onClick={() => handleShareProfile("twitter")}
-                    className="bg-[#1DA1F2] hover:bg-[#1DA1F2]/80 text-white font-bold"
-                  >
-                    𝕏 Twitter
-                  </Button>
-                  <Button
-                    onClick={() => handleShareProfile("facebook")}
-                    className="bg-[#1877F2] hover:bg-[#1877F2]/80 text-white font-bold"
-                  >
-                    f Facebook
-                  </Button>
-                  <Button
-                    onClick={() => handleShareProfile("linkedin")}
-                    className="bg-[#0A66C2] hover:bg-[#0A66C2]/80 text-white font-bold"
-                  >
-                    in LinkedIn
-                  </Button>
+                  {[
+                    { platform: "twitter", icon: "𝕏", label: "Twitter" },
+                    { platform: "facebook", icon: "f", label: "Facebook" },
+                    { platform: "linkedin", icon: "in", label: "LinkedIn" },
+                  ].map((social) => (
+                    <Button
+                      key={social.platform}
+                      onClick={() => handleShareProfile(social.platform)}
+                      className="bg-[#ff00cc] hover:bg-[#ff00cc]/80 text-black font-bold"
+                    >
+                      {social.icon}
+                    </Button>
+                  ))}
                 </div>
               </div>
-            </Card>
-
-            {/* Share Info */}
-            <Card className="bg-[#1a1f2e] border border-[#2a2f3e] p-6">
-              <h3 className="text-lg font-bold text-[#00eaff] mb-4">💡 Tips</h3>
-              <ul className="space-y-2 text-[#7a7f8e] text-sm">
-                <li>• Share your profile to show off your customizations</li>
-                <li>• Let friends discover your Anom Coin balance and achievements</li>
-                <li>• Invite others to join the Anom Artsy community</li>
-              </ul>
             </Card>
           </div>
         )}
