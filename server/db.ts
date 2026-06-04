@@ -717,3 +717,17 @@ export async function getAdminAnalytics() {
     throw error;
   }
 }
+
+
+export async function getAllMerchRequests() {
+  const db = await getDb();
+  if (!db) return [];
+
+  try {
+    // Return empty array for now - merch requests table may not exist
+    return [];
+  } catch (error) {
+    console.error("[Database] Failed to get all merch requests:", error);
+    throw error;
+  }
+}
